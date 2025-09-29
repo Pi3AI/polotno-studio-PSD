@@ -1,0 +1,144 @@
+/* PSD精确渲染样式 - 确保与原始文件最大一致性 */
+
+/* 全局字体渲染优化 */
+:root {
+  /* 字体渲染变量 */
+  --font-smoothing: antialiased;
+  --text-rendering: optimizeLegibility;
+  --font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  --font-variant-ligatures: common-ligatures;
+  
+  /* PSD颜色空间变量 */
+  --psd-color-profile: srgb;
+  --psd-gamma: 1.0;
+  
+  /* 精确度控制 */
+  --pixel-precision: 1;
+  --subpixel-rendering: rgb;
+}
+
+/* 高精度文本渲染类 */
+.psd-precise-text {
+  /* 字体渲染优化 */
+  font-smooth: always;
+  -webkit-font-smoothing: var(--font-smoothing);
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: var(--text-rendering);
+  font-feature-settings: var(--font-feature-settings);
+  font-variant-ligatures: var(--font-variant-ligatures);
+  
+  /* 子像素渲染 */
+  text-rendering: geometricPrecision;
+  shape-rendering: geometricPrecision;
+  
+  /* 防止字体回退时的跳跃 */
+  font-display: block;
+  
+  /* 精确的文本度量 */
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  
+  /* 禁用文本选择时的优化干扰 */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* PSD字体大小映射表 */
+.psd-font-6 { font-size: 6px !important; }
+.psd-font-7 { font-size: 7px !important; }
+.psd-font-8 { font-size: 8px !important; }
+.psd-font-9 { font-size: 9px !important; }
+.psd-font-10 { font-size: 10px !important; }
+.psd-font-11 { font-size: 11px !important; }
+.psd-font-12 { font-size: 12px !important; }
+.psd-font-14 { font-size: 14px !important; }
+.psd-font-16 { font-size: 16px !important; }
+.psd-font-18 { font-size: 18px !important; }
+.psd-font-20 { font-size: 20px !important; }
+.psd-font-22 { font-size: 22px !important; }
+.psd-font-24 { font-size: 24px !important; }
+.psd-font-28 { font-size: 28px !important; }
+.psd-font-32 { font-size: 32px !important; }
+.psd-font-36 { font-size: 36px !important; }
+.psd-font-48 { font-size: 48px !important; }
+.psd-font-60 { font-size: 60px !important; }
+.psd-font-72 { font-size: 72px !important; }
+
+/* PSD行高精确控制 */
+.psd-leading-tight { line-height: 0.9 !important; }
+.psd-leading-normal { line-height: 1.0 !important; }
+.psd-leading-relaxed { line-height: 1.1 !important; }
+.psd-leading-loose { line-height: 1.2 !important; }
+
+/* PSD字符间距精确控制 */
+.psd-tracking-tighter { letter-spacing: -0.05em !important; }
+.psd-tracking-tight { letter-spacing: -0.025em !important; }
+.psd-tracking-normal { letter-spacing: 0em !important; }
+.psd-tracking-wide { letter-spacing: 0.025em !important; }
+.psd-tracking-wider { letter-spacing: 0.05em !important; }
+.psd-tracking-widest { letter-spacing: 0.1em !important; }
+
+/* PSD颜色精确匹配 */
+.psd-color-exact {
+  color-profile: srgb;
+  color-interpolation: sRGB;
+  color-rendering: optimizeQuality;
+}
+
+/* 高DPI屏幕优化 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .psd-precise-text {
+    /* 高DPI屏幕的字体渲染优化 */
+    -webkit-font-smoothing: subpixel-antialiased;
+    transform: translateZ(0); /* 启用硬件加速 */
+  }
+}
+
+/* 字体加载状态 */
+.psd-font-loading {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.psd-font-loaded {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* PSD预览对比模式 */
+.psd-comparison-mode {
+  position: relative;
+}
+
+.psd-comparison-mode::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 0, 0, 0.1);
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* 调试辅助网格 */
+.psd-debug-grid {
+  background-image: 
+    linear-gradient(rgba(0,0,255,0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,255,0.1) 1px, transparent 1px);
+  background-size: 10px 10px;
+}
+
+/* 像素完美对齐 */
+.psd-pixel-perfect {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -o-crisp-edges;
+  image-rendering: pixelated;
+}

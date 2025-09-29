@@ -61,6 +61,17 @@ export const loadPSDFile = async (file, store) => {
     const psd = await parsePSDFile(file);
     console.log('PSD 解析完成:', psd);
     
+    // 保存PSD预览图用于对比
+    const previewUrl = getPSDPreview(psd);
+    if (previewUrl) {
+      // 将预览图保存到全局变量，供PSD对比工具使用
+      window.lastPSDPreview = previewUrl;
+      if (window.storePSDPreview) {
+        window.storePSDPreview(previewUrl, file.name);
+      }
+      console.log('PSD预览图已保存，可用于对比工具');
+    }
+    
     // 设置画布尺寸
     if (psd.width && psd.height) {
       console.log('设置画布尺寸:', psd.width, 'x', psd.height);
@@ -94,7 +105,7 @@ export const loadPSDFile = async (file, store) => {
     console.log('PSD 文件加载完成');
     
     if (successCount > 0) {
-      alert(`成功导入 PSD 文件！\n导入图层: ${successCount}\n跳过图层: ${layers.length - successCount - errorCount}\n失败图层: ${errorCount}`);
+      alert(`成功导入 PSD 文件！\n导入图层: ${successCount}\n跳过图层: ${layers.length - successCount - errorCount}\n失败图层: ${errorCount}\n\n📌 为了更好的用户体验，所有图层透明度已设置为100%`);
     } else {
       alert('PSD 文件导入完成，但没有可用的图层内容');
     }

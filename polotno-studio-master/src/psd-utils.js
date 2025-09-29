@@ -1,4 +1,15 @@
 import { readPsd } from 'ag-psd';
+import { psdDebugger } from './utils/PSDDebugger';
+import { fontManager } from './utils/FontManager';
+// 全局导入选项：可通过 window.psdImportOptions.rasterizeText 控制
+const shouldRasterizeText = () => {
+  try {
+    if (window.psdImportOptions && typeof window.psdImportOptions.rasterizeText === 'boolean') {
+      return window.psdImportOptions.rasterizeText;
+    }
+  } catch (e) {}
+  return true; // 默认开启：将文字以位图导入确保完全一致
+};
 
 /**
  * 解析 PSD 文件
@@ -21,17 +32,49 @@ export const parsePSDFile = async (file) => {
           throw new Error('无效的 PSD 文件格式');
         }
         
-        // 尝试不同的解析选项以获取实际的图层数据
+        // 精确解析配置以保持原始PSD数据完整性
         const psd = readPsd(arrayBuffer, {
           skipLayerImageData: false,
           skipCompositeImageData: false,
           skipThumbnail: false,
-          useImageData: false, // 改为false，让ag-psd使用canvas
-          useRawThumbnail: true,
+          useImageData: false, // 使用Canvas以获得更精确的颜色显示
+          useRawThumbnail: false,
           throwForMissingFeatures: false,
-          logMissingFeatures: true,
+          logMissingFeatures: false,
+          ignoreAlphaChannel: false,
+          logDevModeWarnings: false,
         });
         
+        const psdInfo = {
+          width: psd.width,
+          height: psd.height,
+          colorMode: psd.colorMode,
+          resolution: psd.resolution,
+          pixelsPerInch: psd.pixelsPerInch,
+          layerCount: psd.children?.length || 0,
+          hasColorProfile: !!psd.colorProfile
+        };
+        
+        console.log('PSD解析成功:', psdInfo);
+        psdDebugger.log('PSD文件解析成功', psdInfo);
+        
+        // 将PSD信息附加到每个图层以便后续使用
+        const attachPSDInfo = (layers) => {
+          layers.forEach(layer => {
+            layer.psdInfo = {
+              resolution: psd.resolution || psd.pixelsPerInch || 72,
+              width: psd.width,
+              height: psd.height
+            };
+            if (layer.children) {
+              attachPSDInfo(layer.children);
+            }
+          });
+        };
+        
+        if (psd.children) {
+          attachPSDInfo(psd.children);
+        }
         
         resolve(psd);
       } catch (error) {
@@ -68,12 +111,16 @@ export const layerToCanvas = (layer) => {
   // ag-psd 在使用 useImageData: false 时会直接创建 HTMLCanvasElement
   if (layer.canvas) {
     if (layer.canvas instanceof HTMLCanvasElement) {
-      // 检查canvas内容
-      const canvasDataURL = layer.canvas.toDataURL();
-      
-      // 如果canvas不为空，则缩放到目标尺寸
-      if (canvasDataURL.length > 1000) {
-        ctx.drawImage(layer.canvas, 0, 0, width, height);
+      // 直接使用原始canvas，保持最高保真度
+      const sourceCanvas = layer.canvas;
+      if (sourceCanvas.width > 0 && sourceCanvas.height > 0) {
+        // 设置目标尺寸
+        canvas.width = width || sourceCanvas.width;
+        canvas.height = height || sourceCanvas.height;
+        
+        // 使用高质量的绘制设置
+        ctx.imageSmoothingEnabled = false; // 禁用插值以保持像素精度
+        ctx.drawImage(sourceCanvas, 0, 0, canvas.width, canvas.height);
         return canvas;
       }
     }
@@ -151,15 +198,30 @@ export const layerToCanvas = (layer) => {
         }
         
         
-        // 检查是否需要处理预乘alpha或其他颜色格式问题
+        // 处理颜色空间和预乘alpha问题
         const processedData = new Uint8ClampedArray(sourceData.length);
         for (let i = 0; i < sourceData.length; i += 4) {
-          const r = sourceData[i];
-          const g = sourceData[i + 1];
-          const b = sourceData[i + 2];
-          const a = sourceData[i + 3];
+          let r = sourceData[i];
+          let g = sourceData[i + 1];
+          let b = sourceData[i + 2];
+          let a = sourceData[i + 3];
           
-          // 直接复制，不进行预乘alpha处理
+          // 简化颜色处理 - 保持原始PSD颜色值
+          // 只进行必要的预乘alpha处理
+          if (a > 0 && a < 255) {
+            const alpha = a / 255;
+            if (alpha > 0) {
+              r = Math.min(255, Math.max(0, Math.round(r / alpha)));
+              g = Math.min(255, Math.max(0, Math.round(g / alpha)));
+              b = Math.min(255, Math.max(0, Math.round(b / alpha)));
+            }
+          }
+          
+          // 不应用任何gamma校正，保持原始颜色
+          r = Math.max(0, Math.min(255, Math.round(r)));
+          g = Math.max(0, Math.min(255, Math.round(g)));
+          b = Math.max(0, Math.min(255, Math.round(b)));
+          
           processedData[i] = r;     // Red
           processedData[i + 1] = g; // Green
           processedData[i + 2] = b; // Blue
@@ -248,7 +310,7 @@ export const flattenLayers = (layers = [], result = [], parentIndex = -1) => {
       parentIndex,
       id: `layer_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`,
       visible: layer.hidden !== true,
-      opacity: layer.opacity !== undefined ? layer.opacity / 255 : 1,
+      opacity: 1, // 强制所有图层为100%不透明
       blendMode: layer.blendMode || 'normal',
     };
     
@@ -288,20 +350,280 @@ export const layerToPolotnoElement = async (layer) => {
       width,
       height,
       rotation: 0,
-      opacity: 1, // 强制设置为100%不透明
-      visible: true, // 强制设置为可见
-      blendMode: 'normal', // 使用正常混合模式
+      opacity: 1, // 强制设置为100%不透明，提升用户体验
+      visible: !layer.hidden, // 根据图层可见性设置
+      blendMode: mapBlendMode(layer.blendMode) // 映射混合模式
     };
     
     // 处理文本图层
     if (layer.text && layer.text.text) {
+      // 若启用“位图导入文字”，优先将文本图层以图像方式导入以确保完全一致
+      if (shouldRasterizeText()) {
+        const rasterCanvas = layerToCanvas(layer);
+        if (rasterCanvas) {
+          element.type = 'image';
+          element.src = canvasToDataURL(rasterCanvas);
+          // 保留元数据，便于后续一键转换回可编辑文本
+          element.custom = {
+            ...element.custom,
+            fromTextLayer: true,
+            originalText: layer.text.text,
+            rasterized: true
+          };
+          return element;
+        }
+      }
+
+      // 严格模式，确保与 PSD 高度一致（可编辑文本路径）
       element.type = 'text';
       element.text = layer.text.text || '';
-      element.fontSize = layer.text.style?.fontSize || 16;
-      element.fontFamily = layer.text.style?.fontName || 'Arial';
-      element.fill = layer.text.style?.fillColor ? 
-        rgbToHex(layer.text.style.fillColor) : '#000000';
-      element.align = layer.text.style?.alignment || 'left';
+      
+      // 获取文本样式，尝试多种数据结构以确保兼容性
+      let textStyle = null;
+      
+      // 方法1: 优先使用textStyleRange中的样式(最准确)
+      if (layer.text.textStyleRange && layer.text.textStyleRange.length > 0) {
+        textStyle = layer.text.textStyleRange[0].textStyle;
+        console.log('使用textStyleRange样式:', textStyle);
+      }
+      // 方法2: 使用runs中的样式
+      else if (layer.text.runs && layer.text.runs.length > 0) {
+        textStyle = layer.text.runs[0].style;
+        console.log('使用runs样式:', textStyle);
+      }
+      // 方法3: 使用默认样式对象
+      else if (layer.text.style) {
+        textStyle = layer.text.style;
+        console.log('使用默认样式:', textStyle);
+      }
+      // 方法4: 如果有engineData，尝试从中解析
+      else if (layer.text.engineData) {
+        console.log('尝试解析engineData:', layer.text.engineData);
+        // engineData通常包含更复杂的样式信息
+        if (layer.text.engineData.StyleRun && layer.text.engineData.StyleRun.length > 0) {
+          const styleRun = layer.text.engineData.StyleRun[0];
+          if (styleRun.StyleSheet && styleRun.StyleSheet.StyleSheetData) {
+            textStyle = styleRun.StyleSheet.StyleSheetData;
+            console.log('从engineData解析样式:', textStyle);
+          }
+        }
+      }
+      
+      // 如果仍然没有找到样式，创建默认样式
+      if (!textStyle) {
+        textStyle = {
+          fontSize: 16,
+          fontName: 'Arial',
+          fillColor: { r: 0, g: 0, b: 0 }
+        };
+        console.log('使用默认样式:', textStyle);
+      }
+      
+      // 添加精确样式类标记 - 用于CSS精确渲染
+      element.custom = {
+        psdPrecision: true,
+        originalFontSize: textStyle?.fontSize,
+        originalFontName: textStyle?.fontName,
+        originalColor: textStyle?.fillColor,
+        renderingMode: 'precise'
+      };
+      
+      const originalStyleData = {
+        layerName: layer.name,
+        textStyle: textStyle,
+        fontSize: textStyle?.fontSize,
+        fontName: textStyle?.fontName,
+        fillColor: textStyle?.fillColor
+      };
+      
+      console.log('PSD文本样式原始数据:', originalStyleData);
+      psdDebugger.logConversion('文本样式提取', layer.name, originalStyleData, null);
+      
+      // 严格的字体大小：优先使用 Photoshop 提供的像素字号 (implied)，否则按 pt→px(96/72)
+      const ptToPx = (pt) => (pt * 96) / 72;
+      const styleRunData = (layer.text?.engineData?.StyleRun && layer.text.engineData.StyleRun[0]?.StyleSheet?.StyleSheetData) || {};
+      const impliedPx = Number(textStyle?.impliedFontSize || textStyle?.ImpliedFontSize || styleRunData.ImpliedFontSize);
+      const originalFontSizePt = Number(textStyle?.fontSize) || Number(textStyle?.Size) || Number(styleRunData.FontSize) || 16;
+      const baseFontPx = impliedPx && impliedPx > 0 ? impliedPx : ptToPx(originalFontSizePt);
+      element.fontSize = Math.max(1, Math.round(baseFontPx * 100) / 100);
+      element.custom = {
+        ...element.custom,
+        originalFontSizePt: originalFontSizePt,
+        originalFontSizePx: element.fontSize,
+        fontSizeSource: impliedPx && impliedPx > 0 ? 'impliedPx' : 'ptToPx'
+      };
+      
+      // 使用Web安全字体映射，但保持最大相似性
+      if (textStyle?.fontName) {
+        const originalFont = textStyle.fontName;
+        element.fontFamily = fontManager.getFontWithFallback(originalFont);
+        fontManager.loadFont(originalFont, element.fontSize).then((loaded) => {
+          if (!loaded) console.warn(`字体 ${originalFont} 加载失败，使用回退`);
+        });
+        psdDebugger.logFontConversion(layer.name, originalFont, element.fontFamily,
+          originalFontSizePt, element.fontSize);
+        element.custom = {
+          ...element.custom,
+          fontOptimized: true,
+          originalFontName: originalFont
+        };
+      } else {
+        element.fontFamily = 'Arial, sans-serif';
+      }
+      
+      // 高精度颜色转换 - 为Polotno编辑器优化
+      if (textStyle?.fillColor) {
+        const color = textStyle.fillColor;
+        if (color.r !== undefined && color.g !== undefined && color.b !== undefined) {
+          // 确保颜色值在正确范围内
+          let r = Math.round(Math.max(0, Math.min(255, color.r)));
+          let g = Math.round(Math.max(0, Math.min(255, color.g)));
+          let b = Math.round(Math.max(0, Math.min(255, color.b)));
+          
+          // 如果颜色值在0-1范围，转换为0-255
+          if (color.r <= 1 && color.g <= 1 && color.b <= 1) {
+            r = Math.round(color.r * 255);
+            g = Math.round(color.g * 255);
+            b = Math.round(color.b * 255);
+          }
+          
+          element.fill = `rgb(${r}, ${g}, ${b})`; // 使用RGB格式以获得更好的兼容性
+          
+          // 保存精确颜色信息
+          element.custom = {
+            ...element.custom,
+            preciseColor: { r, g, b },
+            originalColorSource: 'psd'
+          };
+          
+          console.log(`颜色转换: RGB(${color.r}, ${color.g}, ${color.b}) -> ${element.fill}`);
+          
+          // 记录颜色转换详情
+          psdDebugger.logColorConversion(layer.name, 
+            { r: color.r, g: color.g, b: color.b }, 
+            { r, g, b, css: element.fill }
+          );
+        } else {
+          element.fill = 'rgb(0, 0, 0)';
+        }
+      } else {
+        element.fill = 'rgb(0, 0, 0)';
+      }
+      
+      // 精确的对齐方式映射
+      const alignment = textStyle?.alignment || textStyle?.justification || 'left';
+      element.align = mapTextAlignment(alignment);
+      
+      console.log(`文本对齐: ${alignment} -> ${element.align}`);
+      
+      // 原始字体样式
+      element.fontWeight = (textStyle?.fauxBold || 
+        (textStyle?.fontName && textStyle.fontName.toLowerCase().includes('bold'))) ? 'bold' : 'normal';
+      
+      element.fontStyle = (textStyle?.fauxItalic || 
+        (textStyle?.fontName && textStyle.fontName.toLowerCase().includes('italic'))) ? 'italic' : 'normal';
+      
+      // 原始文本装饰
+      const decorations = [];
+      if (textStyle?.underline) decorations.push('underline');
+      if (textStyle?.strikethrough) decorations.push('line-through');
+      element.textDecoration = decorations.length > 0 ? decorations.join(' ') : 'none';
+      
+      // 应用水平/垂直缩放（Photoshop HorizontalScale/VerticalScale 或 Transform 矩阵）
+      const hScalePct = Number(textStyle?.horizontalScale || textStyle?.HorizontalScale || styleRunData.HorizontalScale);
+      const vScalePct = Number(textStyle?.verticalScale || textStyle?.VerticalScale || styleRunData.VerticalScale);
+      let scaleX = isFinite(hScalePct) && hScalePct > 0 ? hScalePct / 100 : 1;
+      let scaleY = isFinite(vScalePct) && vScalePct > 0 ? vScalePct / 100 : 1;
+
+      // 解析 Transform 矩阵以获取缩放
+      const transform = layer.text?.engineData?.Transform || layer.text?.transform || styleRunData.Transform;
+      if (Array.isArray(transform) && transform.length >= 4) {
+        // Photoshop 矩阵 [xx, xy, yx, yy, tx, ty]
+        const xx = Number(transform[0]);
+        const xy = Number(transform[1]);
+        const yx = Number(transform[2]);
+        const yy = Number(transform[3]);
+        const calcScaleX = Math.sqrt((xx || 0) * (xx || 0) + (xy || 0) * (xy || 0));
+        const calcScaleY = Math.sqrt((yx || 0) * (yx || 0) + (yy || 0) * (yy || 0));
+        if (calcScaleX > 0) scaleX *= calcScaleX;
+        if (calcScaleY > 0) scaleY *= calcScaleY;
+      }
+
+      // 仅当没有 ImpliedFontSize（即从 pt→px 计算）时，才对字号施加缩放，避免二次缩放
+      if (scaleY !== 1 && element.custom.fontSizeSource === 'ptToPx') {
+        const before = element.fontSize;
+        element.fontSize = Math.max(1, Math.round((element.fontSize * scaleY) * 100) / 100);
+        element.custom = { ...element.custom, appliedScaleY: scaleY, fontSizeBeforeScale: before };
+      }
+      // 仅在从 pt→px 计算的情况下，对字距应用水平缩放
+      if (scaleX !== 1 && typeof element.letterSpacing === 'number' && element.custom.fontSizeSource === 'ptToPx') {
+        element.letterSpacing = Math.max(-0.5, Math.min(2.0, Math.round((element.letterSpacing * scaleX) * 1000) / 1000));
+        element.custom = { ...element.custom, appliedScaleX: scaleX };
+      }
+
+      // 行高：PSD leading 为 pt，换算为 px 后除以字体像素，得到比例
+      if (textStyle?.leading && textStyle.leading > 0) {
+        const leadingPt = Number(textStyle.leading);
+        const leadingPx = ptToPx(leadingPt);
+        element.lineHeight = Math.max(0.8, Math.min(3.0, Math.round((leadingPx / element.fontSize) * 1000) / 1000));
+        console.log(`严格行高: ${leadingPt}pt -> ${element.lineHeight} (font ${element.fontSize}px)`);
+      } else {
+        element.lineHeight = 1.2;
+      }
+      
+      // 高精度字符间距处理
+      if (textStyle?.tracking !== undefined && textStyle.tracking !== null) {
+        // PSD tracking 以 1/1000 em 表示
+        const tracking = Number(textStyle.tracking);
+        element.letterSpacing = Math.max(-0.5, Math.min(2.0, Math.round((tracking / 1000) * 1000) / 1000));
+        console.log(`严格字符间距: ${tracking} -> ${element.letterSpacing}em`);
+      } else {
+        element.letterSpacing = 0;
+      }
+      
+      // 保存原始行高和间距值用于调试
+      element.custom = {
+        ...element.custom,
+        originalLeadingPt: textStyle?.leading,
+        originalTrackingThousandthsEm: textStyle?.tracking,
+        preciseMetrics: {
+          lineHeight: element.lineHeight,
+          letterSpacing: element.letterSpacing,
+          calculationMethod: 'strict-pt-to-px'
+        }
+      };
+      
+      // 应用精确样式CSS类
+      element.custom = {
+        ...element.custom,
+        cssClass: 'psd-precision-text',
+        renderingOptimizations: {
+          fontSmoothing: 'antialiased',
+          textRendering: 'optimizeLegibility',
+          fontDisplay: 'swap'
+        }
+      };
+      
+      console.log('转换后的Polotno元素:', element);
+      
+      // 记录最终元素转换结果
+      psdDebugger.logConversion('元素转换完成', layer.name, 
+        { 
+          layerType: layer.text ? 'text' : 'image',
+          layerBounds: { left: layer.left, top: layer.top, right: layer.right, bottom: layer.bottom }
+        },
+        {
+          elementType: element.type,
+          position: { x: element.x, y: element.y },
+          size: { width: element.width, height: element.height },
+          styles: element.type === 'text' ? {
+            fontSize: element.fontSize,
+            fontFamily: element.fontFamily,
+            fill: element.fill,
+            hasCustomPrecision: !!element.custom?.psdPrecision
+          } : null
+        }
+      );
       
     } 
     // 处理图像图层 - 现在更宽容，即使没有明显的图像数据也尝试创建
@@ -324,6 +646,169 @@ export const layerToPolotnoElement = async (layer) => {
     });
     return null;
   }
+};
+
+/**
+ * 确保字体已加载
+ * @param {string} fontFamily - 字体名称
+ * @param {number} fontSize - 字体大小
+ * @returns {Promise<boolean>} 是否加载成功
+ */
+const ensureFontLoaded = async (fontFamily, fontSize = 16) => {
+  if (!fontFamily || fontFamily === 'Arial') return true;
+  
+  try {
+    // 使用FontFace API检查字体是否可用
+    await document.fonts.ready;
+    
+    // 检查字体是否已经可用
+    if (document.fonts.check(`${fontSize}px ${fontFamily}`)) {
+      return true;
+    }
+
+    // 尝试从系统字体加载
+    const fontFace = new FontFace(fontFamily, `local("${fontFamily}")`);
+    const loadedFont = await fontFace.load();
+    document.fonts.add(loadedFont);
+    
+    return document.fonts.check(`${fontSize}px ${fontFamily}`);
+  } catch (error) {
+    console.warn(`字体 ${fontFamily} 加载失败:`, error);
+    return false;
+  }
+};
+
+/**
+ * 获取字体的回退方案
+ * @param {string} fontName - 原始字体名称
+ * @returns {string} 字体回退字符串
+ */
+const getFontFallbacks = (fontName) => {
+  if (!fontName) return 'Arial, sans-serif';
+  
+  const lowerName = fontName.toLowerCase();
+  
+  // 无衬线字体回退
+  if (lowerName.includes('arial') || lowerName.includes('helvetica')) {
+    return 'Arial, Helvetica, sans-serif';
+  }
+  
+  // 衬线字体回退
+  if (lowerName.includes('times') || lowerName.includes('georgia') || lowerName.includes('serif')) {
+    return 'Times, "Times New Roman", Georgia, serif';
+  }
+  
+  // 等宽字体回退
+  if (lowerName.includes('courier') || lowerName.includes('mono')) {
+    return 'Courier, "Courier New", Monaco, monospace';
+  }
+  
+  // 手写体回退
+  if (lowerName.includes('script') || lowerName.includes('brush')) {
+    return 'cursive';
+  }
+  
+  // 装饰字体回退
+  if (lowerName.includes('display') || lowerName.includes('title')) {
+    return 'fantasy';
+  }
+  
+  // 默认无衬线回退
+  return 'Arial, sans-serif';
+};
+
+/**
+ * 映射字体名称到Web安全字体
+ * @param {string} psdFontName - PSD 字体名称
+ * @returns {string} Web安全字体名称
+ */
+const mapFontName = (psdFontName) => {
+  if (!psdFontName) return 'Arial';
+  
+  const fontName = psdFontName.toLowerCase();
+  
+  // 常见字体映射
+  const fontMap = {
+    'arial': 'Arial, sans-serif',
+    'helvetica': 'Helvetica, Arial, sans-serif',
+    'times': 'Times, "Times New Roman", serif',
+    'timesnewroman': 'Times, "Times New Roman", serif',
+    'times new roman': 'Times, "Times New Roman", serif',
+    'courier': 'Courier, "Courier New", monospace',
+    'couriernew': 'Courier, "Courier New", monospace',
+    'courier new': 'Courier, "Courier New", monospace',
+    'verdana': 'Verdana, Arial, sans-serif',
+    'georgia': 'Georgia, Times, serif',
+    'palatino': 'Palatino, "Palatino Linotype", serif',
+    'garamond': 'Garamond, Times, serif',
+    'bookman': 'Bookman, serif',
+    'comic sans ms': '"Comic Sans MS", cursive',
+    'impact': 'Impact, Arial Black, sans-serif',
+    'lucida console': '"Lucida Console", Monaco, monospace',
+    'lucida sans unicode': '"Lucida Sans Unicode", Arial, sans-serif',
+    'symbol': 'Symbol',
+    'webdings': 'Webdings',
+    'wingdings': 'Wingdings',
+    'ms sans serif': '"MS Sans Serif", sans-serif',
+    'ms serif': '"MS Serif", serif',
+  };
+  
+  // 尝试精确匹配
+  if (fontMap[fontName]) {
+    return fontMap[fontName];
+  }
+  
+  // 尝试部分匹配
+  for (const [key, value] of Object.entries(fontMap)) {
+    if (fontName.includes(key) || key.includes(fontName)) {
+      return value;
+    }
+  }
+  
+  // 根据字体特征分类
+  if (fontName.includes('serif') && !fontName.includes('sans')) {
+    return 'Times, "Times New Roman", serif';
+  } else if (fontName.includes('mono') || fontName.includes('courier')) {
+    return 'Courier, "Courier New", monospace';
+  } else if (fontName.includes('script') || fontName.includes('cursive')) {
+    return 'cursive';
+  } else if (fontName.includes('fantasy') || fontName.includes('decorative')) {
+    return 'fantasy';
+  }
+  
+  // 默认无衬线字体
+  return 'Arial, sans-serif';
+};
+
+/**
+ * 映射文本对齐方式
+ * @param {string} psdAlignment - PSD 对齐方式
+ * @returns {string} CSS 对齐方式
+ */
+const mapTextAlignment = (psdAlignment) => {
+  if (!psdAlignment) return 'left';
+  
+  const alignment = psdAlignment.toString().toLowerCase();
+  
+  const alignmentMap = {
+    'left': 'left',
+    'center': 'center',
+    'centre': 'center',
+    'middle': 'center',
+    'right': 'right',
+    'justify': 'justify',
+    'justifyleft': 'left',
+    'justifycenter': 'center',
+    'justifyright': 'right',
+    'justifyall': 'justify',
+    // 处理数字值
+    '0': 'left',
+    '1': 'center', 
+    '2': 'right',
+    '3': 'justify',
+  };
+  
+  return alignmentMap[alignment] || 'left';
 };
 
 /**
@@ -351,14 +836,22 @@ const mapBlendMode = (psdBlendMode) => {
 };
 
 /**
- * RGB 转 HEX
+ * RGB 转 HEX (改进版本，处理颜色空间问题)
  * @param {Object} rgb - RGB 颜色对象
  * @returns {string} HEX 颜色字符串
  */
 const rgbToHex = (rgb) => {
-  const { r = 0, g = 0, b = 0 } = rgb;
+  let { r = 0, g = 0, b = 0 } = rgb;
+  
+  // 确保颜色值在有效范围内
+  r = Math.max(0, Math.min(255, Math.round(r)));
+  g = Math.max(0, Math.min(255, Math.round(g)));
+  b = Math.max(0, Math.min(255, Math.round(b)));
+  
+  // 不应用任何颜色校正，保持原始颜色值
+  
   return `#${[r, g, b].map(x => {
-    const hex = Math.round(x).toString(16);
+    const hex = x.toString(16);
     return hex.length === 1 ? '0' + hex : hex;
   }).join('')}`;
 };
