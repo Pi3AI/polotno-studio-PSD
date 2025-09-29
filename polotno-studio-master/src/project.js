@@ -42,7 +42,7 @@ class Project {
 
     setInterval(() => {
       mobx.runInAction(() => {
-        this.cloudEnabled = window.puter?.auth?.isSignedIn();
+        this.cloudEnabled = window.puter?.auth?.isSignedIn() || false;
       });
     }, 100);
   }
@@ -170,8 +170,15 @@ class Project {
   }
 
   async signIn() {
-    await window.puter.auth.signIn();
-    this.designsLength = await api.backupFromLocalToCloud();
+    if (window.puter?.auth?.signIn) {
+      await window.puter.auth.signIn();
+      this.designsLength = await api.backupFromLocalToCloud();
+    } else {
+      // 在开发环境中，这是正常的，不需要显示警告
+      if (process.env.NODE_ENV !== 'development') {
+        console.warn('Puter cloud service not available in development mode');
+      }
+    }
   }
 }
 

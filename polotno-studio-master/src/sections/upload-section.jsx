@@ -1,7 +1,7 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { Button } from '@blueprintjs/core';
-import { Upload, Trash } from '@blueprintjs/icons';
+// 使用字串 IconName
 import {
   ImagesGrid,
   UploadSection as DefaultUploadSection,
@@ -9,6 +9,13 @@ import {
 import { getImageSize, getCrop } from 'polotno/utils/image';
 import { getVideoSize, getVideoPreview } from 'polotno/utils/video';
 import { dataURLtoBlob } from '../blob';
+import { 
+  parsePSDFile, 
+  flattenLayers, 
+  layerToPolotnoElement, 
+  getPSDPreview,
+  isPSDFile 
+} from '../psd-utils';
 
 import { CloudWarning } from '../cloud-warning';
 
@@ -17,6 +24,9 @@ import { listAssets, uploadAsset, deleteAsset } from '../api';
 
 function getType(file) {
   const { type } = file;
+  if (isPSDFile(file)) {
+    return 'psd';
+  }
   if (type.indexOf('svg') >= 0) {
     return 'svg';
   }
@@ -69,17 +79,62 @@ export const UploadPanel = observer(({ store }) => {
     for (const file of target.files) {
       const type = getType(file);
       let previewDataURL = '';
-      if (type === 'video') {
+      
+      if (type === 'psd') {
+        try {
+          const psd = await parsePSDFile(file);
+          previewDataURL = getPSDPreview(psd) || '';
+          
+          // 如果用户选择导入 PSD，直接处理图层
+          if (window.confirm('检测到 PSD 文件，是否导入所有图层到画布？')) {
+            await handlePSDImport(psd);
+            setUploading(false);
+            target.value = null;
+            return;
+          }
+        } catch (error) {
+          console.error('PSD 处理失败:', error);
+          alert('PSD 文件处理失败，请检查文件格式');
+          continue;
+        }
+      } else if (type === 'video') {
         previewDataURL = await getVideoPreview(URL.createObjectURL(file));
       } else {
         previewDataURL = await getImageFilePreview(file);
       }
+      
       const preview = dataURLtoBlob(previewDataURL);
       await uploadAsset({ file, preview, type });
     }
     await load();
     setUploading(false);
     target.value = null;
+  };
+
+  const handlePSDImport = async (psd) => {
+    try {
+      // 设置画布尺寸
+      if (psd.width && psd.height) {
+        store.setSize(psd.width, psd.height);
+      }
+      
+      // 提取并转换图层
+      const layers = flattenLayers(psd.children || []);
+      console.log('PSD 图层数量:', layers.length);
+      
+      for (const layer of layers) {
+        const element = await layerToPolotnoElement(layer);
+        if (element) {
+          store.activePage.addElement(element);
+        }
+      }
+      
+      console.log('PSD 导入完成');
+      alert(`成功导入 ${layers.filter(l => !l.hidden).length} 个图层`);
+    } catch (error) {
+      console.error('PSD 导入失败:', error);
+      alert('PSD 导入过程中发生错误');
+    }
   };
 
   const handleDelete = async (image) => {
@@ -103,7 +158,7 @@ export const UploadPanel = observer(({ store }) => {
       <div style={{ marginBottom: '20px' }}>
         <label htmlFor="input-file">
           <Button
-            icon={<Upload />}
+            icon="upload"
             style={{ width: '100%' }}
             onClick={() => {
               document.querySelector('#input-file')?.click();
@@ -119,6 +174,7 @@ export const UploadPanel = observer(({ store }) => {
             style={{ display: 'none' }}
             onChange={handleFileInput}
             multiple
+            accept="image/*,.psd,application/photoshop,image/vnd.adobe.photoshop"
           />
         </label>
       </div>
@@ -131,7 +187,7 @@ export const UploadPanel = observer(({ store }) => {
         getCredit={(image) => (
           <div>
             <Button
-              icon={<Trash />}
+              icon="trash"
               onClick={(e) => {
                 e.stopPropagation();
                 handleDelete(image);

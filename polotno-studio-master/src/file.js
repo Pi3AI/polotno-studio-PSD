@@ -1,3 +1,10 @@
+import { 
+  parsePSDFile, 
+  flattenLayers, 
+  layerToPolotnoElement, 
+  isPSDFile 
+} from './psd-utils';
+
 export const loadJSONFile = (file, store) => {
   var reader = new FileReader();
   reader.onloadend = function () {
@@ -46,8 +53,61 @@ export const loadImageFile = (file, store) => {
   reader.readAsDataURL(file);
 };
 
+// PSD 文件处理函数
+export const loadPSDFile = async (file, store) => {
+  try {
+    console.log('开始加载 PSD 文件:', file.name, file.size, 'bytes');
+    
+    const psd = await parsePSDFile(file);
+    console.log('PSD 解析完成:', psd);
+    
+    // 设置画布尺寸
+    if (psd.width && psd.height) {
+      console.log('设置画布尺寸:', psd.width, 'x', psd.height);
+      store.setSize(psd.width, psd.height);
+    }
+    
+    // 提取并转换图层
+    const layers = flattenLayers(psd.children || []);
+    console.log('扁平化图层数量:', layers.length);
+    
+    let successCount = 0;
+    let errorCount = 0;
+    
+    for (const layer of layers) {
+      console.log('处理图层:', layer.name, layer);
+      try {
+        const element = await layerToPolotnoElement(layer);
+        if (element) {
+          store.activePage.addElement(element);
+          successCount++;
+          console.log('成功添加图层:', element.name);
+        } else {
+          console.log('跳过图层:', layer.name);
+        }
+      } catch (layerError) {
+        console.error('图层处理失败:', layer.name, layerError);
+        errorCount++;
+      }
+    }
+    
+    console.log('PSD 文件加载完成');
+    
+    if (successCount > 0) {
+      alert(`成功导入 PSD 文件！\n导入图层: ${successCount}\n跳过图层: ${layers.length - successCount - errorCount}\n失败图层: ${errorCount}`);
+    } else {
+      alert('PSD 文件导入完成，但没有可用的图层内容');
+    }
+  } catch (error) {
+    console.error('PSD 文件加载失败:', error);
+    alert(`PSD 文件加载失败: ${error.message}\n\n请确保文件是有效的 PSD 格式，且不是过于复杂的文件。`);
+  }
+};
+
 export const loadFile = (file, store) => {
-  if (file.type.indexOf('image') >= 0) {
+  if (isPSDFile(file)) {
+    loadPSDFile(file, store);
+  } else if (file.type.indexOf('image') >= 0) {
     loadImageFile(file, store);
   } else {
     loadJSONFile(file, store);

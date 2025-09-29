@@ -13,6 +13,10 @@ export default defineConfig({
     analyzer(),
   ],
 
+  server: {
+    port: 3002,
+  },
+
   build: {
     sourcemap: true,
   },

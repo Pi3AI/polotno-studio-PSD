@@ -9,7 +9,7 @@ import {
   Spinner,
   Popover,
 } from '@blueprintjs/core';
-import { DocumentOpen, Trash, More } from '@blueprintjs/icons';
+// 使用字串 IconName 取代圖示元件
 
 import { CloudWarning } from '../cloud-warning';
 
@@ -81,14 +81,14 @@ const DesignCard = observer(({ design, store, onDelete }) => {
           content={
             <Menu>
               <MenuItem
-                icon={<DocumentOpen />}
+                icon="document-open"
                 text="Open"
                 onClick={() => {
                   handleSelect();
                 }}
               />
               <MenuItem
-                icon={<Trash />}
+                icon="trash"
                 text="Delete"
                 onClick={() => {
                   if (window.confirm('Are you sure you want to delete it?')) {
@@ -100,7 +100,7 @@ const DesignCard = observer(({ design, store, onDelete }) => {
           }
           position={Position.BOTTOM}
         >
-          <Button icon={<More />} />
+          <Button icon="more" />
         </Popover>
       </div>
     </Card>

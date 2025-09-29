@@ -2,7 +2,7 @@ import React from 'react';
 import { observer } from 'mobx-react-lite';
 
 import { Button, Position, Menu, MenuItem, Popover } from '@blueprintjs/core';
-import { LogIn, LogOut, User } from '@blueprintjs/icons';
+// 使用字串 IconName 取代圖示元件
 import { useProject } from '../project';
 
 export const UserMenu = observer(({ store }) => {
@@ -24,9 +24,9 @@ export const UserMenu = observer(({ store }) => {
               <div style={{ padding: '5px' }}>Logged as {user?.username}</div>
             )}
             {!project.cloudEnabled && (
-              <MenuItem
-                text="Login"
-                icon={<LogIn />}
+            <MenuItem
+              text="Login"
+              icon="log-in"
                 onClick={() => {
                   project.signIn();
                 }}
@@ -35,7 +35,7 @@ export const UserMenu = observer(({ store }) => {
             {project.cloudEnabled && (
               <MenuItem
                 text="Logout"
-                icon={<LogOut />}
+                icon="log-out"
                 onClick={() => {
                   window.puter.auth.signOut();
                   // logout({ returnTo: window.location.origin, localOnly: true });
@@ -47,7 +47,7 @@ export const UserMenu = observer(({ store }) => {
         position={Position.BOTTOM_RIGHT}
       >
         <Button
-          icon={<User />}
+          icon="user"
           minimal
           intent={project.cloudEnabled ? 'none' : 'warning'}
         ></Button>

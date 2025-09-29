@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import { Button } from '@blueprintjs/core';
 import { useProject } from './project';
-import { Cloud } from '@blueprintjs/icons';
+// 使用字串 IconName
 
 export const CloudWarning = observer(() => {
   const project = useProject();
@@ -23,7 +23,7 @@ export const CloudWarning = observer(() => {
         onClick={() => {
           project.signIn();
         }}
-        icon={<Cloud />}
+        icon="cloud"
       >
         Enable cloud storage
       </Button>

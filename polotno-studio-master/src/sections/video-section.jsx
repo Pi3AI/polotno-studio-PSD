@@ -4,7 +4,7 @@ import { ImagesGrid } from 'polotno/side-panel/images-grid';
 import { SectionTab } from 'polotno/side-panel';
 import { useInfiniteAPI } from 'polotno/utils/use-api';
 import { t } from 'polotno/utils/l10n';
-import { Video } from '@blueprintjs/icons';
+// 使用字串 IconName
 import { selectVideo } from 'polotno/side-panel/select-video';
 import { getKey } from 'polotno/utils/validate-key';
 
@@ -92,7 +92,7 @@ export const VideosSection = {
   name: 'videos',
   Tab: (props) => (
     <SectionTab name="Videos" {...props}>
-      <Video />
+      <span className="bp5-icon bp5-icon-video" />
     </SectionTab>
   ),
   // we need observer to update component automatically on any store changes

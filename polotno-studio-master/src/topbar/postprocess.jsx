@@ -12,7 +12,7 @@ import {
 import { getKey } from 'polotno/utils/validate-key';
 import { downloadFile } from 'polotno/utils/download';
 import { useCredits } from '../credits';
-import { ArrowRight } from '@blueprintjs/icons';
+// 使用字串 IconName
 
 export const PostProcessModal = observer(
   ({ isOpen, onClose, imageUrl, imageType, imageName }) => {
@@ -327,7 +327,7 @@ export const PostProcessModal = observer(
                   padding: '0 10px',
                 }}
               >
-                <ArrowRight size={30} color="#106ba3" />
+                <span className="bp5-icon bp5-icon-arrow-right" style={{ fontSize: '30px', color: '#106ba3' }} />
               </div>
 
               {/* Result Image */}

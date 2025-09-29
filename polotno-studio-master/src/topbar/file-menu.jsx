@@ -10,15 +10,7 @@ import {
   MenuDivider,
   Popover,
 } from '@blueprintjs/core';
-import {
-  Plus,
-  Translate,
-  InfoSign,
-  FolderOpen,
-  FloppyDisk,
-  Import,
-  AlignJustify,
-} from '@blueprintjs/icons';
+// 改為字串 IconName
 import { downloadFile } from 'polotno/utils/download';
 import { svgToJson } from 'polotno/utils/from-svg';
 
@@ -33,7 +25,7 @@ export const FileMenu = observer(({ store, project }) => {
           <Menu>
             {/* <MenuDivider title={t('toolbar.layering')} /> */}
             <MenuItem
-              icon={<Plus />}
+              icon="plus"
               text="Create new design"
               onClick={() => {
                 project.createNewDesign();
@@ -41,21 +33,21 @@ export const FileMenu = observer(({ store, project }) => {
             />
             <MenuDivider />
             <MenuItem
-              icon={<FolderOpen />}
+              icon="folder-open"
               text="Open"
               onClick={() => {
                 document.querySelector('#load-project').click();
               }}
             />
             <MenuItem
-              icon={<Import />}
+              icon="import"
               text="Import svg (experimental)"
               onClick={() => {
                 document.querySelector('#svg-import-input').click();
               }}
             />
             <MenuItem
-              icon={<FloppyDisk />}
+              icon="floppy-disk"
               text="Save as JSON"
               onClick={() => {
                 const json = store.toJSON();
@@ -71,7 +63,7 @@ export const FileMenu = observer(({ store, project }) => {
             />
 
             <MenuDivider />
-            <MenuItem text="Language" icon={<Translate />}>
+            <MenuItem text="Language" icon="translate">
               <MenuItem
                 text="English"
                 active={project.language.startsWith('en')}
@@ -110,7 +102,7 @@ export const FileMenu = observer(({ store, project }) => {
             </MenuItem>
             <MenuItem
               text="About"
-              icon={<InfoSign />}
+              icon="info-sign"
               onClick={() => {
                 toggleFaq(true);
               }}
@@ -119,7 +111,7 @@ export const FileMenu = observer(({ store, project }) => {
         }
         position={Position.BOTTOM_RIGHT}
       >
-        <Button minimal icon={<AlignJustify />} />
+        <Button minimal icon="align-justify" />
       </Popover>
       <input
         type="file"
@@ -208,7 +200,7 @@ export const FileMenu = observer(({ store, project }) => {
         }}
       />
       <Dialog
-        icon={<InfoSign />}
+        icon="info-sign"
         onClose={() => toggleFaq(false)}
         title="About Polotno Studio"
         isOpen={faqOpened}

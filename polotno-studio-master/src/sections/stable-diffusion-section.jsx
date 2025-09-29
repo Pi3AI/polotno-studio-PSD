@@ -1,7 +1,7 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { InputGroup, Button, HTMLSelect, ButtonGroup } from '@blueprintjs/core';
-import { Clean, Plus } from '@blueprintjs/icons';
+// 使用字串 IconName
 
 import { SectionTab } from 'polotno/side-panel';
 import { getKey } from 'polotno/utils/validate-key';
@@ -375,7 +375,7 @@ export const StableDiffusionSection = {
   name: 'stable-diffusion',
   Tab: (props) => (
     <SectionTab name="AI Img" {...props}>
-      <Clean />
+      <span className="bp5-icon bp5-icon-clean" />
     </SectionTab>
   ),
   // we need observer to update component automatically on any store changes
