@@ -11,30 +11,27 @@ export const parsePSDFile = async (file) => {
     
     reader.onload = (e) => {
       try {
-        console.log('开始解析 PSD 文件...');
         const arrayBuffer = e.target.result;
         
         // 检查文件头
         const header = new Uint8Array(arrayBuffer.slice(0, 4));
         const signature = String.fromCharCode(...header);
-        console.log('PSD 文件签名:', signature);
         
         if (signature !== '8BPS') {
           throw new Error('无效的 PSD 文件格式');
         }
         
+        // 尝试不同的解析选项以获取实际的图层数据
         const psd = readPsd(arrayBuffer, {
           skipLayerImageData: false,
           skipCompositeImageData: false,
           skipThumbnail: false,
-          useImageData: true,
+          useImageData: false, // 改为false，让ag-psd使用canvas
+          useRawThumbnail: true,
+          throwForMissingFeatures: false,
+          logMissingFeatures: true,
         });
         
-        console.log('PSD 解析成功:', {
-          width: psd.width,
-          height: psd.height,
-          layerCount: psd.children?.length || 0
-        });
         
         resolve(psd);
       } catch (error) {
@@ -57,51 +54,145 @@ export const parsePSDFile = async (file) => {
  * @returns {HTMLCanvasElement|null} Canvas 元素
  */
 export const layerToCanvas = (layer) => {
-  if (!layer.canvas && !layer.imageData) {
-    console.warn('图层没有 canvas 或 imageData 数据:', layer);
-    return null;
-  }
-  
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   
-  // ag-psd 可能返回不同的数据格式
-  let width, height, data;
+  // 计算图层尺寸
+  const width = Math.max(1, Math.floor((layer.right || 0) - (layer.left || 0)));
+  const height = Math.max(1, Math.floor((layer.bottom || 0) - (layer.top || 0)));
   
-  if (layer.canvas) {
-    // 如果是 HTMLCanvasElement
-    if (layer.canvas instanceof HTMLCanvasElement) {
-      return layer.canvas;
-    }
-    // 如果是包含数据的对象
-    width = layer.canvas.width;
-    height = layer.canvas.height;
-    data = layer.canvas.data;
-  } else if (layer.imageData) {
-    width = layer.imageData.width;
-    height = layer.imageData.height;
-    data = layer.imageData.data;
-  }
-  
-  if (!width || !height || !data) {
-    console.warn('图层数据不完整:', { width, height, hasData: !!data });
-    return null;
-  }
   
   canvas.width = width;
   canvas.height = height;
   
-  try {
-    // 创建 ImageData 并绘制到 canvas
-    const imageData = ctx.createImageData(width, height);
-    imageData.data.set(data);
-    ctx.putImageData(imageData, 0, 0);
+  // ag-psd 在使用 useImageData: false 时会直接创建 HTMLCanvasElement
+  if (layer.canvas) {
+    if (layer.canvas instanceof HTMLCanvasElement) {
+      // 检查canvas内容
+      const canvasDataURL = layer.canvas.toDataURL();
+      
+      // 如果canvas不为空，则缩放到目标尺寸
+      if (canvasDataURL.length > 1000) {
+        ctx.drawImage(layer.canvas, 0, 0, width, height);
+        return canvas;
+      }
+    }
     
-    return canvas;
-  } catch (error) {
-    console.error('Canvas 绘制失败:', error);
-    return null;
+    // 如果 canvas 是数据对象
+    if (layer.canvas.data && layer.canvas.width && layer.canvas.height) {
+      
+      try {
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCanvas.width = layer.canvas.width;
+        tempCanvas.height = layer.canvas.height;
+        
+        const imageData = tempCtx.createImageData(layer.canvas.width, layer.canvas.height);
+        
+        // 处理数据格式
+        let sourceData;
+        if (layer.canvas.data instanceof Uint8ClampedArray) {
+          sourceData = layer.canvas.data;
+        } else {
+          sourceData = new Uint8ClampedArray(layer.canvas.data);
+        }
+        
+        imageData.data.set(sourceData);
+        tempCtx.putImageData(imageData, 0, 0);
+        
+        const tempDataURL = tempCanvas.toDataURL();
+        
+        // 将临时 canvas 绘制到目标 canvas 上
+        ctx.drawImage(tempCanvas, 0, 0, width, height);
+        return canvas;
+      } catch (error) {
+        console.error('Canvas 数据绘制失败:', error, layer.name);
+      }
+    }
   }
+  
+  // 检查 imageData
+  if (layer.imageData && layer.imageData.data) {
+    
+    try {
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCanvas.width = layer.imageData.width;
+      tempCanvas.height = layer.imageData.height;
+      
+      const expectedLength = layer.imageData.width * layer.imageData.height * 4;
+      
+      if (layer.imageData.data.length !== expectedLength) {
+        // 如果长度不匹配，可能需要调整
+        const adjustedData = new Uint8ClampedArray(expectedLength);
+        const copyLength = Math.min(layer.imageData.data.length, expectedLength);
+        
+        // 确保数据是正确的格式
+        if (layer.imageData.data instanceof Uint8ClampedArray) {
+          adjustedData.set(layer.imageData.data.subarray(0, copyLength));
+        } else {
+          adjustedData.set(new Uint8ClampedArray(layer.imageData.data.buffer || layer.imageData.data).subarray(0, copyLength));
+        }
+        
+        const imageData = tempCtx.createImageData(layer.imageData.width, layer.imageData.height);
+        imageData.data.set(adjustedData);
+        tempCtx.putImageData(imageData, 0, 0);
+      } else {
+        const imageData = tempCtx.createImageData(layer.imageData.width, layer.imageData.height);
+        
+        // 确保数据格式正确
+        let sourceData;
+        if (layer.imageData.data instanceof Uint8ClampedArray) {
+          sourceData = layer.imageData.data;
+        } else if (layer.imageData.data.buffer) {
+          sourceData = new Uint8ClampedArray(layer.imageData.data.buffer);
+        } else {
+          sourceData = new Uint8ClampedArray(layer.imageData.data);
+        }
+        
+        
+        // 检查是否需要处理预乘alpha或其他颜色格式问题
+        const processedData = new Uint8ClampedArray(sourceData.length);
+        for (let i = 0; i < sourceData.length; i += 4) {
+          const r = sourceData[i];
+          const g = sourceData[i + 1];
+          const b = sourceData[i + 2];
+          const a = sourceData[i + 3];
+          
+          // 直接复制，不进行预乘alpha处理
+          processedData[i] = r;     // Red
+          processedData[i + 1] = g; // Green
+          processedData[i + 2] = b; // Blue
+          processedData[i + 3] = a; // Alpha
+        }
+        
+        imageData.data.set(processedData);
+        tempCtx.putImageData(imageData, 0, 0);
+        
+      }
+      
+      const tempDataURL = tempCanvas.toDataURL();
+      
+      // 将临时 canvas 绘制到目标 canvas 上
+      ctx.drawImage(tempCanvas, 0, 0, width, height);
+      return canvas;
+    } catch (error) {
+      console.error('ImageData 绘制失败:', error, layer.name);
+    }
+  }
+  
+  // 如果都没有有效数据，创建一个带颜色的测试图层
+  ctx.fillStyle = `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.5)`;
+  ctx.fillRect(0, 0, width, height);
+  ctx.strokeStyle = '#000000';
+  ctx.strokeRect(0, 0, width, height);
+  
+  // 添加图层名称
+  ctx.fillStyle = '#000000';
+  ctx.font = '12px Arial';
+  ctx.fillText(layer.name || 'Unnamed', 5, 15);
+  
+  return canvas;
 };
 
 /**
@@ -111,7 +202,35 @@ export const layerToCanvas = (layer) => {
  * @returns {string} DataURL
  */
 export const canvasToDataURL = (canvas, format = 'image/png') => {
-  return canvas.toDataURL(format);
+  try {
+    const dataURL = canvas.toDataURL(format, 0.9); // 添加质量参数
+    
+    if (dataURL.length < 1000) {
+      
+      // 尝试创建一个简单的测试图像来验证canvas功能
+      const testCanvas = document.createElement('canvas');
+      testCanvas.width = canvas.width;
+      testCanvas.height = canvas.height;
+      const testCtx = testCanvas.getContext('2d');
+      
+      // 绘制一个简单的背景来测试
+      testCtx.fillStyle = '#ff0000';
+      testCtx.fillRect(0, 0, 50, 50);
+      
+      const testDataURL = testCanvas.toDataURL(format);
+      
+      return dataURL;
+    }
+    
+    return dataURL;
+  } catch (error) {
+    console.error('Canvas 转换 DataURL 失败:', error);
+    // 返回一个默认的透明图像
+    const fallbackCanvas = document.createElement('canvas');
+    fallbackCanvas.width = canvas.width;
+    fallbackCanvas.height = canvas.height;
+    return fallbackCanvas.toDataURL(format);
+  }
 };
 
 /**
@@ -157,12 +276,6 @@ export const layerToPolotnoElement = async (layer) => {
       return null;
     }
     
-    console.log('处理图层:', {
-      name: layer.name,
-      type: layer.text ? 'text' : 'image',
-      bounds: { left: layer.left, top: layer.top, right: layer.right, bottom: layer.bottom },
-      hasCanvas: !!(layer.canvas || layer.imageData)
-    });
     
     const width = Math.max(1, (layer.right || 0) - (layer.left || 0));
     const height = Math.max(1, (layer.bottom || 0) - (layer.top || 0));
@@ -175,9 +288,9 @@ export const layerToPolotnoElement = async (layer) => {
       width,
       height,
       rotation: 0,
-      opacity: layer.opacity !== undefined ? layer.opacity / 255 : 1,
-      visible: !layer.hidden,
-      blendMode: mapBlendMode(layer.blendMode),
+      opacity: 1, // 强制设置为100%不透明
+      visible: true, // 强制设置为可见
+      blendMode: 'normal', // 使用正常混合模式
     };
     
     // 处理文本图层
@@ -190,33 +303,25 @@ export const layerToPolotnoElement = async (layer) => {
         rgbToHex(layer.text.style.fillColor) : '#000000';
       element.align = layer.text.style?.alignment || 'left';
       
-      console.log('创建文本元素:', {
-        text: element.text,
-        fontSize: element.fontSize,
-        fill: element.fill
-      });
     } 
-    // 处理图像图层
-    else if (layer.canvas || layer.imageData) {
+    // 处理图像图层 - 现在更宽容，即使没有明显的图像数据也尝试创建
+    else {
       element.type = 'image';
       const canvas = layerToCanvas(layer);
       if (canvas) {
         element.src = canvasToDataURL(canvas);
-        console.log('创建图像元素，Canvas 尺寸:', canvas.width, 'x', canvas.height);
       } else {
-        console.warn('无法创建图层 Canvas:', layer.name);
+        console.warn('无法创建图层 Canvas，跳过图层:', layer.name);
         return null;
       }
-    } 
-    // 空图层或其他类型
-    else {
-      console.warn('图层没有可用内容:', layer.name);
-      return null;
     }
     
     return element;
   } catch (error) {
-    console.error('图层转换失败:', error, layer);
+    console.error('图层转换失败:', error, {
+      layerName: layer.name,
+      layerKeys: Object.keys(layer)
+    });
     return null;
   }
 };
@@ -265,23 +370,38 @@ const rgbToHex = (rgb) => {
  */
 export const getPSDPreview = (psd) => {
   try {
+    console.log('getPSDPreview: 开始生成预览，PSD信息:', {
+      width: psd.width,
+      height: psd.height,
+      hasCanvas: !!psd.canvas,
+      canvasType: psd.canvas ? (psd.canvas instanceof HTMLCanvasElement ? 'HTMLCanvasElement' : 'Object') : 'none'
+    });
+    
     // 尝试使用合成图像
     if (psd.canvas) {
       if (psd.canvas instanceof HTMLCanvasElement) {
-        return canvasToDataURL(psd.canvas);
+        console.log('getPSDPreview: 使用HTMLCanvasElement生成预览');
+        const dataURL = canvasToDataURL(psd.canvas);
+        console.log('getPSDPreview: HTMLCanvasElement预览生成完成，长度:', dataURL?.length);
+        return dataURL;
       }
       
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      canvas.width = psd.canvas.width || psd.width;
-      canvas.height = psd.canvas.height || psd.height;
-      
-      if (psd.canvas.data) {
-        const imageData = ctx.createImageData(canvas.width, canvas.height);
-        imageData.data.set(psd.canvas.data);
-        ctx.putImageData(imageData, 0, 0);
-        return canvasToDataURL(canvas);
+      if (psd.canvas.data && psd.canvas.width && psd.canvas.height) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = psd.canvas.width;
+        canvas.height = psd.canvas.height;
+        
+        try {
+          const imageData = ctx.createImageData(canvas.width, canvas.height);
+          imageData.data.set(new Uint8ClampedArray(psd.canvas.data));
+          ctx.putImageData(imageData, 0, 0);
+          const dataURL = canvasToDataURL(canvas);
+          return dataURL;
+        } catch (error) {
+          console.warn('Canvas 数据处理失败，使用占位符:', error);
+        }
       }
     }
     
@@ -294,20 +414,29 @@ export const getPSDPreview = (psd) => {
       const maxSize = 200;
       const scale = Math.min(maxSize / psd.width, maxSize / psd.height);
       
-      canvas.width = psd.width * scale;
-      canvas.height = psd.height * scale;
+      canvas.width = Math.max(1, psd.width * scale);
+      canvas.height = Math.max(1, psd.height * scale);
       
       // 绘制简单的占位符
-      ctx.fillStyle = '#f0f0f0';
+      ctx.fillStyle = '#e8e8e8';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      ctx.fillStyle = '#666';
-      ctx.font = '12px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('PSD', canvas.width / 2, canvas.height / 2);
-      ctx.fillText(`${psd.width}×${psd.height}`, canvas.width / 2, canvas.height / 2 + 15);
+      // 添加边框
+      ctx.strokeStyle = '#ccc';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
       
-      return canvasToDataURL(canvas);
+      // 添加PSD图标和信息
+      ctx.fillStyle = '#666';
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('PSD', canvas.width / 2, canvas.height / 2 - 5);
+      
+      ctx.font = '10px Arial';
+      ctx.fillText(`${psd.width}×${psd.height}`, canvas.width / 2, canvas.height / 2 + 10);
+      
+      const dataURL = canvasToDataURL(canvas);
+      return dataURL;
     }
     
     return null;
@@ -329,18 +458,26 @@ export const isPSDFile = (file) => {
     'image/x-photoshop',
     'application/photoshop',
     'application/psd',
+    'application/octet-stream', // 很多时候PSD文件会被识别为这种类型
   ];
   
   const hasPSDMimeType = psdMimeTypes.includes(file.type);
   const hasPSDExtension = file.name.toLowerCase().endsWith('.psd');
   
+  // 如果是 octet-stream，只有在文件扩展名是 .psd 时才认为是PSD文件
+  const isPSDByMimeType = file.type === 'application/octet-stream' ? hasPSDExtension : hasPSDMimeType;
+  
+  const result = isPSDByMimeType || hasPSDExtension;
+  
   console.log('PSD 文件检测:', {
     fileName: file.name,
     fileType: file.type,
+    fileSize: file.size,
     hasPSDMimeType,
     hasPSDExtension,
-    isPSD: hasPSDMimeType || hasPSDExtension
+    isPSDByMimeType,
+    finalResult: result
   });
   
-  return hasPSDMimeType || hasPSDExtension;
+  return result;
 };

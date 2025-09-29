@@ -19,6 +19,7 @@ import { ShapesSection } from './sections/shapes-section';
 import { StableDiffusionSection } from './sections/stable-diffusion-section';
 import { MyDesignsSection } from './sections/my-designs-section';
 import { LayersSection } from './sections/layers-section';
+import { UploadSection } from './sections/upload-section';
 
 import { useProject } from './project';
 
@@ -42,7 +43,7 @@ DEFAULT_SECTIONS.splice(3, 1, ShapesSection);
 DEFAULT_SECTIONS.splice(3, 0, IconsSection);
 // add two more sections
 DEFAULT_SECTIONS.push(QuotesSection, QrSection);
-// DEFAULT_SECTIONS.unshift(UploadSection);
+DEFAULT_SECTIONS.unshift(UploadSection);
 DEFAULT_SECTIONS.unshift(MyDesignsSection);
 // add layers section
 DEFAULT_SECTIONS.push(LayersSection);
