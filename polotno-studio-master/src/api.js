@@ -218,7 +218,7 @@ export const listAssets = async () => {
 };
 
 export const getAssetSrc = async ({ id }) => {
-  if (window.puter.auth.isSignedIn()) {
+  if (isSignedIn()) {
     const subdomain = await getPublicSubDomain();
     return `https://${subdomain}.puter.site/${id}`;
   } else {
@@ -228,7 +228,7 @@ export const getAssetSrc = async ({ id }) => {
 };
 
 export const getAssetPreviewSrc = async ({ id }) => {
-  if (window.puter.auth.isSignedIn()) {
+  if (isSignedIn()) {
     const subdomain = await getPublicSubDomain();
     return `https://${subdomain}.puter.site/${id}-preview`;
   } else {
@@ -239,15 +239,22 @@ export const getAssetPreviewSrc = async ({ id }) => {
 };
 
 export const uploadAsset = async ({ file, preview, type }) => {
+  console.log('uploadAsset: 开始上传，文件类型:', type, '文件名:', file.name);
   const list = await listAssets();
+  console.log('uploadAsset: 获取资源列表成功，当前资源数量:', list.length);
   const id = nanoid(10);
+  console.log('uploadAsset: 生成ID:', id);
   await writeFile(`uploads/${id}`, file);
+  console.log('uploadAsset: 主文件写入成功');
   await writeFile(`uploads/${id}-preview`, preview);
+  console.log('uploadAsset: 预览文件写入成功');
   list.push({ id, type });
   await writeKv('assets-list', list);
+  console.log('uploadAsset: 资源列表更新成功');
 
   const src = await getAssetSrc({ id });
   const previewSrc = await getAssetPreviewSrc({ id });
+  console.log('uploadAsset: 上传完成');
   return { id, src, preview: previewSrc };
 };
 

@@ -9,9 +9,11 @@ export const UserMenu = observer(({ store }) => {
   const project = useProject();
   const [user, setUser] = React.useState(null);
   React.useEffect(() => {
-    if (project.cloudEnabled) {
+    if (project.cloudEnabled && window.puter?.auth?.getUser) {
       window.puter.auth.getUser().then((user) => {
         setUser(user);
+      }).catch((error) => {
+        console.error('Failed to get user:', error);
       });
     }
   }, [project.cloudEnabled]);
@@ -37,7 +39,9 @@ export const UserMenu = observer(({ store }) => {
                 text="Logout"
                 icon="log-out"
                 onClick={() => {
-                  window.puter.auth.signOut();
+                  if (window.puter?.auth?.signOut) {
+                    window.puter.auth.signOut();
+                  }
                   // logout({ returnTo: window.location.origin, localOnly: true });
                 }}
               />
