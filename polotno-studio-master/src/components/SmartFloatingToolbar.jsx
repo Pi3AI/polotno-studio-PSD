@@ -16,7 +16,10 @@ const SmartFloatingToolbar = observer(({ store }) => {
     side: 'top',          // top | bottom | left | right
     vertical: false,      // 垂直堆叠（用于左右侧显示）
     compact: false,       // 紧凑模式
-    mini: false           // 迷你模式（更小按钮）
+    mini: false,          // 迷你模式（更小按钮）
+    avoidOverlap: false,  // 特殊样式避免遮挡
+    semiTransparent: false, // 半透明模式
+    floatingOverlay: false  // 浮动覆盖模式
   });
   
   // 获取画布容器的可视区域矩形（兼容多种容器结构）
@@ -40,7 +43,7 @@ const SmartFloatingToolbar = observer(({ store }) => {
     return fallback ? fallback.getBoundingClientRect() : null;
   };
 
-  // 实时位置更新函数
+  // 实时位置更新函数 - 优化版本
   const updatePositionRealtime = (element) => {
     if (!element || !visible) return;
 
@@ -48,113 +51,162 @@ const SmartFloatingToolbar = observer(({ store }) => {
     if (!canvasRect) return;
     const zoom = store.zoom || 1;
 
-    // 计算元素在视口中的位置
+    // 精确计算元素在视口中的位置，考虑所有变换
     const elementX = canvasRect.left + (element.x * zoom);
     const elementY = canvasRect.top + (element.y * zoom);
     const elementWidth = element.width * (element.scaleX || 1) * zoom;
     const elementHeight = element.height * (element.scaleY || 1) * zoom;
 
-    // 计算工具栏位置（快速版本，具备基本碰撞/尺寸自适应）
+    // 获取工具栏实际尺寸
     const toolbarElement = toolbarRef.current;
     let baseWidth = toolbarElement ? toolbarElement.offsetWidth : 400;
     let baseHeight = toolbarElement ? toolbarElement.offsetHeight : 48;
 
-    // 基于当前布局估算尺寸
-    let currentLayout = { ...layout };
-    let toolbarWidth = baseWidth;
-    let toolbarHeight = baseHeight;
-    if (currentLayout.compact) {
-      toolbarWidth *= 0.85;
-      toolbarHeight *= 0.85;
-    }
-    if (currentLayout.mini) {
-      toolbarWidth *= 0.75;
-      toolbarHeight *= 0.75;
-    }
-    if (currentLayout.vertical) {
-      // 粗略估计竖排后高度变大、宽度变小
-      const t = toolbarWidth;
-      toolbarWidth = Math.max(200, Math.min(260, t * 0.55));
-      toolbarHeight = Math.max(baseHeight, baseHeight * 1.8);
-    }
-
-    let toolbarX = elementX + elementWidth / 2;
-    let toolbarY = elementY - 12;
-
-    // 简单边界检测
-    toolbarX = Math.max(toolbarWidth / 2 + 10,
-      Math.min(window.innerWidth - toolbarWidth / 2 - 10, toolbarX)
-    );
-
-    if (toolbarY - toolbarHeight < 10) {
-      toolbarY = elementY + elementHeight + 12;
-      currentLayout.side = 'bottom';
-    } else {
-      currentLayout.side = 'top';
-    }
-
-    toolbarY = Math.max(toolbarHeight / 2 + 10,
-      Math.min(window.innerHeight - toolbarHeight / 2 - 10, toolbarY)
-    );
-
-    // 决策：如果仍然接近元素边界，尝试左右侧并切换垂直/紧凑/迷你
-    const margin = 8;
-    const elementRect = {
-      left: elementX,
-      right: elementX + elementWidth,
-      top: elementY,
-      bottom: elementY + elementHeight
-    };
-    const toolbarRect = {
-      left: toolbarX - toolbarWidth / 2,
-      right: toolbarX + toolbarWidth / 2,
-      top: toolbarY - toolbarHeight / 2,
-      bottom: toolbarY + toolbarHeight / 2
-    };
-
-    const isIntersect = !(
-      toolbarRect.right < elementRect.left - margin ||
-      toolbarRect.left > elementRect.right + margin ||
-      toolbarRect.bottom < elementRect.top - margin ||
-      toolbarRect.top > elementRect.bottom + margin
-    );
-
-    if (isIntersect) {
-      // 尝试放到左侧或右侧（竖向布局）
-      const spaceLeft = elementRect.left - 10;
-      const spaceRight = window.innerWidth - elementRect.right - 10;
-      const preferRight = spaceRight >= spaceLeft;
-
-      currentLayout.vertical = true;
-      toolbarWidth = Math.max(200, Math.min(260, baseWidth * 0.55));
-      toolbarHeight = Math.max(baseHeight * 1.6, baseHeight + 60);
-      let xCandidate = preferRight ? elementRect.right + 12 + toolbarWidth / 2 : elementRect.left - 12 - toolbarWidth / 2;
-      let yCandidate = elementRect.top + elementHeight / 2;
-
-      // 如果空间不足，开启紧凑或迷你
-      if (preferRight ? spaceRight < toolbarWidth + 12 : spaceLeft < toolbarWidth + 12) {
-        currentLayout.compact = true;
-        toolbarWidth *= 0.9;
-        if ((preferRight ? spaceRight : spaceLeft) < toolbarWidth + 12) {
-          currentLayout.mini = true;
-          toolbarWidth *= 0.85;
+    // 智能位置决策算法
+    const findBestPosition = () => {
+      const margin = 12; // 安全距离
+      const viewportMargin = 10; // 距离屏幕边缘的最小距离
+      
+      // 定义所有可能的位置方案，按优先级排序
+      const positionCandidates = [
+        {
+          id: 'top-center',
+          x: elementX + elementWidth / 2,
+          y: elementY - margin - baseHeight / 2,
+          side: 'top',
+          vertical: false,
+          priority: 1
+        },
+        {
+          id: 'bottom-center', 
+          x: elementX + elementWidth / 2,
+          y: elementY + elementHeight + margin + baseHeight / 2,
+          side: 'bottom',
+          vertical: false,
+          priority: 2
+        },
+        {
+          id: 'right-center',
+          x: elementX + elementWidth + margin + baseWidth / 2,
+          y: elementY + elementHeight / 2,
+          side: 'right',
+          vertical: true,
+          priority: 3
+        },
+        {
+          id: 'left-center',
+          x: elementX - margin - baseWidth / 2,
+          y: elementY + elementHeight / 2,
+          side: 'left',
+          vertical: true,
+          priority: 4
+        },
+        // 角落位置作为备选
+        {
+          id: 'top-right',
+          x: elementX + elementWidth + margin,
+          y: elementY - margin,
+          side: 'top-right',
+          vertical: false,
+          priority: 5
+        },
+        {
+          id: 'top-left',
+          x: elementX - margin,
+          y: elementY - margin,
+          side: 'top-left', 
+          vertical: false,
+          priority: 6
         }
-        xCandidate = preferRight ? elementRect.right + 12 + toolbarWidth / 2 : elementRect.left - 12 - toolbarWidth / 2;
-      }
+      ];
 
-      toolbarX = Math.max(10 + toolbarWidth / 2, Math.min(window.innerWidth - 10 - toolbarWidth / 2, xCandidate));
-      toolbarY = Math.max(10 + toolbarHeight / 2, Math.min(window.innerHeight - 10 - toolbarHeight / 2, yCandidate));
-      currentLayout.side = preferRight ? 'right' : 'left';
-    }
+      // 评估每个位置的适用性
+      const evaluatePosition = (pos) => {
+        let score = 100 - pos.priority * 10; // 基础优先级分数
+        
+        // 检查是否与元素重叠
+        const toolbarRect = {
+          left: pos.x - baseWidth / 2,
+          right: pos.x + baseWidth / 2,
+          top: pos.y - baseHeight / 2,
+          bottom: pos.y + baseHeight / 2
+        };
+        
+        const elementRect = {
+          left: elementX - margin,
+          right: elementX + elementWidth + margin,
+          top: elementY - margin,
+          bottom: elementY + elementHeight + margin
+        };
+        
+        // 检查重叠（越少重叠分数越高）
+        const overlapX = Math.max(0, Math.min(toolbarRect.right, elementRect.right) - Math.max(toolbarRect.left, elementRect.left));
+        const overlapY = Math.max(0, Math.min(toolbarRect.bottom, elementRect.bottom) - Math.max(toolbarRect.top, elementRect.top));
+        const overlapArea = overlapX * overlapY;
+        
+        if (overlapArea > 0) {
+          score -= (overlapArea / (baseWidth * baseHeight)) * 50; // 重叠面积越大扣分越多
+        }
+        
+        // 检查是否超出视口边界
+        const outOfBounds = Math.max(0, viewportMargin - pos.x + baseWidth / 2) +
+                           Math.max(0, pos.x + baseWidth / 2 - (window.innerWidth - viewportMargin)) +
+                           Math.max(0, viewportMargin - pos.y + baseHeight / 2) +
+                           Math.max(0, pos.y + baseHeight / 2 - (window.innerHeight - viewportMargin));
+        
+        score -= outOfBounds * 2; // 超出边界扣分
+        
+        // 距离元素中心的距离（越近越好，但不能重叠）
+        const centerX = elementX + elementWidth / 2;
+        const centerY = elementY + elementHeight / 2;
+        const distance = Math.sqrt(Math.pow(pos.x - centerX, 2) + Math.pow(pos.y - centerY, 2));
+        score -= distance * 0.01; // 距离越远扣分越多（影响较小）
+        
+        return { ...pos, score, overlapArea };
+      };
 
-    setLayout(currentLayout);
-    setPosition({ x: toolbarX, y: toolbarY });
-
-    // 继续下一帧更新
-    if (visible && selectedElement) {
-      animationFrameRef.current = requestAnimationFrame(() =>
-        updatePositionRealtime(selectedElement)
+      // 评估所有位置并选择最佳
+      const evaluatedPositions = positionCandidates.map(evaluatePosition);
+      const bestPosition = evaluatedPositions.reduce((best, current) => 
+        current.score > best.score ? current : best
       );
+
+      return bestPosition;
+    };
+
+    // 找到最佳位置
+    const bestPos = findBestPosition();
+    
+    // 应用位置约束，确保不超出视口
+    let finalX = Math.max(baseWidth / 2 + 10, 
+                         Math.min(window.innerWidth - baseWidth / 2 - 10, bestPos.x));
+    let finalY = Math.max(baseHeight / 2 + 10,
+                         Math.min(window.innerHeight - baseHeight / 2 - 10, bestPos.y));
+
+    // 更新布局状态
+    const newLayout = {
+      side: bestPos.side,
+      vertical: bestPos.vertical,
+      compact: bestPos.overlapArea > 0, // 如果有重叠则启用紧凑模式
+      mini: bestPos.score < 30, // 分数太低则启用迷你模式
+      avoidOverlap: bestPos.score < 50, // 需要特殊样式避免遮挡
+      semiTransparent: bestPos.overlapArea > (baseWidth * baseHeight * 0.1), // 重叠面积较大时使用半透明
+      floatingOverlay: bestPos.overlapArea > 0 && bestPos.overlapArea < (baseWidth * baseHeight * 0.1) // 小范围重叠时使用浮动样式
+    };
+
+    setLayout(newLayout);
+    setPosition({ x: finalX, y: finalY });
+
+    // 继续下一帧更新（提高帧率限制避免性能问题）
+    if (visible && selectedElement) {
+      setTimeout(() => {
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+        }
+        animationFrameRef.current = requestAnimationFrame(() =>
+          updatePositionRealtime(selectedElement)
+        );
+      }, 16); // 限制为60fps
     }
   };
 
@@ -255,8 +307,11 @@ const SmartFloatingToolbar = observer(({ store }) => {
     }, 16); // 使用16ms以获得更流畅的体验（约60fps）
   };
 
-  // 监听元素选择变化和实时更新
+  // 监听元素选择变化和实时更新 - 增强版本
   useEffect(() => {
+    let lastUpdateTime = 0;
+    const updateThrottle = 16; // 限制更新频率到60fps
+    
     const updateToolbar = () => {
       const selected = store.selectedElements?.[0];
 
@@ -266,13 +321,27 @@ const SmartFloatingToolbar = observer(({ store }) => {
         updatePosition(selected);
         setVisible(true);
 
-        // 启动实时位置更新
-        if (animationFrameRef.current) {
-          cancelAnimationFrame(animationFrameRef.current);
-        }
-        animationFrameRef.current = requestAnimationFrame(() =>
-          updatePositionRealtime(selected)
-        );
+        // 启动高性能实时位置更新
+        const startRealtimeUpdate = () => {
+          if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+          }
+          
+          const performUpdate = (timestamp) => {
+            if (timestamp - lastUpdateTime >= updateThrottle) {
+              updatePositionRealtime(selected);
+              lastUpdateTime = timestamp;
+            }
+            
+            if (visible && selectedElement) {
+              animationFrameRef.current = requestAnimationFrame(performUpdate);
+            }
+          };
+          
+          animationFrameRef.current = requestAnimationFrame(performUpdate);
+        };
+        
+        startRealtimeUpdate();
       } else {
         setVisible(false);
         setSelectedElement(null);
@@ -286,94 +355,128 @@ const SmartFloatingToolbar = observer(({ store }) => {
       }
     };
 
-    // 实时监听元素变化和画布事件
+    // 高性能元素变化监听器
     const handleElementChange = () => {
       if (selectedElement) {
-        updatePosition(selectedElement);
+        const now = performance.now();
+        if (now - lastUpdateTime >= updateThrottle) {
+          updatePosition(selectedElement);
+          lastUpdateTime = now;
+        }
       }
     };
 
-    // 监听窗口大小变化
+    // 防抖的窗口大小变化处理
+    let resizeTimeout = null;
     const handleWindowResize = () => {
-      if (selectedElement) {
-        updatePosition(selectedElement);
-      }
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        if (selectedElement) {
+          updatePosition(selectedElement);
+        }
+      }, 100);
     };
 
-    // 监听画布滚动
+    // 高频画布滚动处理
+    let scrollTimeout = null;
     const handleCanvasScroll = () => {
-      if (selectedElement) {
-        updatePosition(selectedElement);
-      }
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        if (selectedElement) {
+          updatePosition(selectedElement);
+        }
+      }, 16);
     };
 
-    // 监听缩放变化
+    // 缩放变化处理
     const handleZoomChange = () => {
       if (selectedElement) {
         updatePosition(selectedElement);
       }
     };
 
-    // 添加更多监听事件
-    store.on('change', updateToolbar);
-    store.on('change', handleElementChange); // 监听所有变化
-    window.addEventListener('resize', handleWindowResize);
-    window.addEventListener('scroll', handleCanvasScroll, true); // 捕获阶段以监听所有滚动
+    // MobX store 变化监听
+    const handleStoreChange = () => {
+      updateToolbar();
+      handleElementChange();
+    };
 
-    // 监听Polotno特定的缩放变化事件
-    if (store.onZoomChange) {
-      store.onZoomChange(handleZoomChange);
-    }
-    
-    // 监听画布点击（取消选择）
-    const handleCanvasClick = (e) => {
+    // 监听画布交互事件
+    const handleCanvasInteraction = (e) => {
       if (toolbarRef.current && !toolbarRef.current.contains(e.target)) {
-        const isCanvasClick = e.target.closest('.polotno-canvas-container');
-        const isSidePanelClick = e.target.closest('.polotno-side-panel');
+        const isCanvasClick = e.target.closest('.polotno-canvas-container') || 
+                             e.target.closest('.konvajs-content') ||
+                             e.target.closest('canvas');
+        const isSidePanelClick = e.target.closest('.polotno-side-panel') ||
+                                e.target.closest('.sidebar');
 
         if (isCanvasClick && !isSidePanelClick) {
-          // 点击画布空白处
           const clickedElement = e.target.closest('[data-element-id]');
-          if (!clickedElement) {
-            store.selectElements([]);
+          if (!clickedElement && e.target.tagName === 'CANVAS') {
+            // 点击画布空白处取消选择
+            setTimeout(() => store.selectElements([]), 0);
           }
         }
       }
     };
 
-    // 添加所有事件监听器
-    store.on('change', updateToolbar);
-    store.on('change', handleElementChange);
-    window.addEventListener('resize', handleWindowResize);
-    window.addEventListener('scroll', handleCanvasScroll, true);
+    // 监听元素拖拽和变换
+    const handleElementTransform = () => {
+      if (selectedElement) {
+        updatePosition(selectedElement);
+      }
+    };
 
+    // 添加优化的事件监听器
+    store.on('change', handleStoreChange);
+    window.addEventListener('resize', handleWindowResize);
+    window.addEventListener('scroll', handleCanvasScroll, { passive: true, capture: true });
+    
+    // 监听更多画布交互事件
+    document.addEventListener('mousedown', handleCanvasInteraction);
+    document.addEventListener('mousemove', handleElementTransform, { passive: true });
+    document.addEventListener('mouseup', handleElementTransform, { passive: true });
+    
+    // 监听键盘操作（如方向键移动元素）
+    document.addEventListener('keydown', handleElementTransform);
+
+    // 监听Polotno特定事件
     if (store.onZoomChange) {
       store.onZoomChange(handleZoomChange);
     }
 
-    document.addEventListener('mousedown', handleCanvasClick);
+    // 初始更新
+    updateToolbar();
 
     return () => {
-      // 清理所有事件监听器
-      store.off('change', updateToolbar);
-      store.off('change', handleElementChange);
+      // 清理所有事件监听器和定时器
+      store.off('change', handleStoreChange);
       window.removeEventListener('resize', handleWindowResize);
-      window.removeEventListener('scroll', handleCanvasScroll, true);
+      window.removeEventListener('scroll', handleCanvasScroll, { passive: true, capture: true });
+      document.removeEventListener('mousedown', handleCanvasInteraction);
+      document.removeEventListener('mousemove', handleElementTransform, { passive: true });
+      document.removeEventListener('mouseup', handleElementTransform, { passive: true });
+      document.removeEventListener('keydown', handleElementTransform);
 
       if (store.offZoomChange) {
         store.offZoomChange(handleZoomChange);
       }
 
-      document.removeEventListener('mousedown', handleCanvasClick);
-
+      // 清理定时器和动画帧
       if (positionTimeoutRef.current) {
         clearTimeout(positionTimeoutRef.current);
       }
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
+      if (resizeTimeout) {
+        clearTimeout(resizeTimeout);
+      }
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
     };
-  }, [store]);
+  }, [store, selectedElement, visible]);
   
   // 工具栏操作函数
   const handleUndo = () => store.history.undo();
@@ -722,13 +825,16 @@ const SmartFloatingToolbar = observer(({ store }) => {
     }
   };
   
-  // 类名组合
+  // 类名组合 - 增强版本
   const classes = [
     'smart-floating-toolbar',
     visible ? 'visible' : '',
     layout.compact ? 'compact' : '',
     layout.vertical ? 'vertical' : '',
-    layout.mini ? 'mini' : ''
+    layout.mini ? 'mini' : '',
+    layout.avoidOverlap ? 'avoid-overlap' : '',
+    layout.semiTransparent ? 'semi-transparent' : '',
+    layout.floatingOverlay ? 'floating-overlay' : ''
   ].filter(Boolean).join(' ');
 
   return (

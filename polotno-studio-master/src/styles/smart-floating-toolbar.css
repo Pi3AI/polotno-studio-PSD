@@ -3,7 +3,7 @@
  * 根据选中元素类型动态显示的上下文工具栏
  */
 
-/* 浮动工具栏容器 */
+/* 浮动工具栏容器 - 增强跟随效果 */
 .smart-floating-toolbar {
   position: fixed;
   display: flex;
@@ -23,7 +23,10 @@
   transform: translateX(-50%) scale(0.95) translateY(4px);
   transition: 
     opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    left 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    top 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform, left, top, opacity;
 }
 
 .smart-floating-toolbar.visible {
@@ -250,6 +253,37 @@
   animation: slideInDown 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* 防止遮挡的特殊样式 */
+.smart-floating-toolbar.avoid-overlap {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(16px);
+  border: 2px solid rgba(99, 102, 241, 0.2);
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.2),
+    0 0 2px rgba(99, 102, 241, 0.3);
+}
+
+/* 智能半透明模式：当工具栏必须遮挡元素时 */
+.smart-floating-toolbar.semi-transparent {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+.smart-floating-toolbar.semi-transparent:hover {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+}
+
+/* 优先保持元素可见性的悬浮模式 */
+.smart-floating-toolbar.floating-overlay {
+  background: rgba(248, 250, 252, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 
+    0 1px 8px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .smart-floating-toolbar {
@@ -274,6 +308,16 @@
   .toolbar-divider {
     height: 16px;
     margin: 0 2px;
+  }
+  
+  /* 移动设备上更激进的避免遮挡 */
+  .smart-floating-toolbar.compact {
+    padding: 2px 4px;
+  }
+  
+  .smart-floating-toolbar.mini .toolbar-btn {
+    width: 20px;
+    height: 20px;
   }
 }
 
