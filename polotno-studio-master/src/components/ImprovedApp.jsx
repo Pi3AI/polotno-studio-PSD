@@ -55,7 +55,7 @@ const ImprovedApp = observer(({ store }) => {
     }
   };
 
-  // 自定义工具栏
+  // 自定义工具栏组件 - 独立的左侧工具栏
   const CustomLeftToolbar = () => {
     const [activeTool, setActiveTool] = useState('select');
     
@@ -64,13 +64,10 @@ const ImprovedApp = observer(({ store }) => {
         id: 'select',
         icon: (
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M3 3L9 9M9 3V9H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M21 3L15 9M15 3V9H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M21 21L15 15M21 15V21H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M3 21L9 15M3 15V21H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
           </svg>
         ),
-        title: 'Select'
+        title: '选择/添加工具'
       },
       {
         id: 'shapes',
@@ -79,7 +76,7 @@ const ImprovedApp = observer(({ store }) => {
             <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2"/>
           </svg>
         ),
-        title: 'Shapes'
+        title: '形状工具'
       },
       {
         id: 'text',
@@ -88,7 +85,17 @@ const ImprovedApp = observer(({ store }) => {
             <path d="M4 7V4H20V7M10 4V20M14 4V20M8 20H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         ),
-        title: 'Text'
+        title: '文本工具'
+      },
+      {
+        id: 'draw',
+        icon: (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M12 19L19 12L22 15L15 22L12 19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M18 13L16.5 5.5L2 2L5.5 16.5L13 18L18 13Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        ),
+        title: '画笔工具'
       },
       {
         id: 'image',
@@ -99,18 +106,7 @@ const ImprovedApp = observer(({ store }) => {
             <path d="M21 15L16 10L5 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         ),
-        title: 'Image'
-      },
-      {
-        id: 'draw',
-        icon: (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M12 19L19 12L22 15L15 22L12 19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M18 13L16.5 5.5L2 2L5.5 16.5L13 18L18 13Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <circle cx="9" cy="9" r="2" stroke="currentColor" strokeWidth="2"/>
-          </svg>
-        ),
-        title: 'Draw'
+        title: '图片工具'
       }
     ];
 
@@ -214,36 +210,47 @@ const ImprovedApp = observer(({ store }) => {
         </div>
       </div>
 
-      {/* 左侧工具栏 */}
+      {/* 左侧工具栏 - 只显示一个 */}
       <CustomLeftToolbar />
 
-      {/* 中央区域 - 包含侧边面板和画布 */}
-      <div className="ai-studio-canvas" style={{ display: 'flex', overflow: 'hidden' }}>
-        <PolotnoContainer className="polotno-app-container" style={{ 
-          width: '100%', 
+      {/* 中央区域 - 画布和可选的侧边面板 */}
+      <div className="ai-studio-canvas" style={{ 
+        display: 'flex', 
+        overflow: 'hidden',
+        position: 'relative',
+        background: '#ffffff'
+      }}>
+        {/* Polotno侧边面板 - 根据工具选择显示 */}
+        {showSidePanel && (
+          <div style={{ 
+            width: '280px',
+            background: '#fafafa',
+            borderRight: '1px solid #e8e8e8',
+            height: '100%',
+            overflow: 'auto'
+          }}>
+            <SidePanel 
+              store={store} 
+              sections={DEFAULT_SECTIONS}
+              defaultSection={DEFAULT_SECTIONS[activeSectionIndex]?.name}
+            />
+          </div>
+        )}
+        
+        {/* 主画布区域 */}
+        <div style={{ 
+          flex: 1,
           height: '100%',
           display: 'flex',
-          background: '#ffffff' 
+          flexDirection: 'column',
+          background: '#ffffff'
         }}>
-          {showSidePanel && (
-            <SidePanelWrap style={{ 
-              width: '300px',
-              background: '#fafafa',
-              borderRight: '1px solid #e8e8e8'
-            }}>
-              <SidePanel 
-                store={store} 
-                sections={DEFAULT_SECTIONS}
-                defaultSection={DEFAULT_SECTIONS[activeSectionIndex]?.name}
-              />
-            </SidePanelWrap>
-          )}
-          <WorkspaceWrap style={{ flex: 1 }}>
-            <Toolbar store={store} />
+          <Toolbar store={store} />
+          <div style={{ flex: 1, position: 'relative' }}>
             <Workspace store={store} />
             <ZoomButtons store={store} />
-          </WorkspaceWrap>
-        </PolotnoContainer>
+          </div>
+        </div>
       </div>
 
       {/* 右侧AI助手面板 */}
