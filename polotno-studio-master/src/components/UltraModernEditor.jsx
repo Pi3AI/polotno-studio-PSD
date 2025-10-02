@@ -9,6 +9,8 @@ import { PagesTimeline } from 'polotno/pages-timeline';
 
 // 导入智能浮动工具栏
 import SmartFloatingToolbar from './SmartFloatingToolbar';
+// 导入超级侧边栏
+import UltraSidebar from './UltraSidebar';
 
 // 导入样式
 import '../styles/ultra-modern.css';
@@ -275,102 +277,12 @@ const UltraModernEditor = observer(({ store }) => {
         </div>
       </header>
       
-      {/* 左侧工具栏 */}
-      <aside className="ultra-sidebar">
-        <button
-          className={`tool-item ${currentTool === 'select' ? 'active' : ''}`}
-          onClick={() => handleToolChange('select')}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/>
-          </svg>
-          <span className="tool-tip">Select</span>
-        </button>
-        
-        <button
-          className={`tool-item ${currentTool === 'text' ? 'active' : ''}`}
-          onClick={() => handleToolChange('text')}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <polyline points="4 7 4 4 20 4 20 7"/>
-            <line x1="9" y1="20" x2="15" y2="20"/>
-            <line x1="12" y1="4" x2="12" y2="20"/>
-          </svg>
-          <span className="tool-tip">Text</span>
-        </button>
-        
-        <button
-          className={`tool-item ${currentTool === 'shapes' ? 'active' : ''}`}
-          onClick={() => handleToolChange('shapes')}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="3" y="3" width="18" height="18" rx="2"/>
-          </svg>
-          <span className="tool-tip">Shapes</span>
-        </button>
-        
-        <button
-          className={`tool-item ${currentTool === 'images' ? 'active' : ''}`}
-          onClick={() => handleToolChange('images')}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <polyline points="21 15 16 10 5 21"/>
-          </svg>
-          <span className="tool-tip">Images</span>
-        </button>
-        
-        <div className="tool-divider"/>
-        
-        <button
-          className={`tool-item ${currentTool === 'templates' ? 'active' : ''}`}
-          onClick={() => handleToolChange('templates')}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="3" y="3" width="7" height="7"/>
-            <rect x="14" y="3" width="7" height="7"/>
-            <rect x="14" y="14" width="7" height="7"/>
-            <rect x="3" y="14" width="7" height="7"/>
-          </svg>
-          <span className="tool-tip">Templates</span>
-        </button>
-        
-        <button
-          className={`tool-item ${currentTool === 'background' ? 'active' : ''}`}
-          onClick={() => handleToolChange('background')}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="3" y="3" width="18" height="18" rx="2"/>
-            <path d="M3 9h18M3 15h18M9 3v18M15 3v18" strokeOpacity="0.3"/>
-          </svg>
-          <span className="tool-tip">Background</span>
-        </button>
-        
-        <button
-          className={`tool-item glow-effect ${currentTool === 'ai' ? 'active' : ''}`}
-          onClick={() => handleToolChange('ai')}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-          </svg>
-          <span className="tool-tip">AI Magic</span>
-        </button>
-        
-        <div className="tool-divider"/>
-        
-        <button
-          className={`tool-item ${currentTool === 'upload' ? 'active' : ''}`}
-          onClick={() => handleToolChange('upload')}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-          <span className="tool-tip">Upload</span>
-        </button>
-      </aside>
+      {/* 使用新的超级侧边栏 */}
+      <UltraSidebar 
+        store={store} 
+        currentTool={currentTool} 
+        onToolChange={handleToolChange} 
+      />
       
       {/* 主画布区域 */}
       <main className="ultra-canvas">
