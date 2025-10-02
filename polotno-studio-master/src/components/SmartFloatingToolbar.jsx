@@ -9,73 +9,328 @@ const SmartFloatingToolbar = observer(({ store }) => {
   const [selectedElement, setSelectedElement] = useState(null);
   const toolbarRef = useRef(null);
   const positionTimeoutRef = useRef(null);
+  const animationFrameRef = useRef(null);
   
-  // 监听元素选择变化
+  // 布局状态：根据可用空间自动切换
+  const [layout, setLayout] = useState({
+    side: 'top',          // top | bottom | left | right
+    vertical: false,      // 垂直堆叠（用于左右侧显示）
+    compact: false,       // 紧凑模式
+    mini: false           // 迷你模式（更小按钮）
+  });
+  
+  // 获取画布容器的可视区域矩形（兼容多种容器结构）
+  const getCanvasRect = () => {
+    const selectors = [
+      '.polotno-workspace-container',
+      '.konvajs-content',
+      '.polotno-page-container',
+      '.polotno-app-container',
+      '.canvas-viewport',
+      '.canvas-container'
+    ];
+    for (let i = 0; i < selectors.length; i++) {
+      const el = document.querySelector(selectors[i]);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        if (rect && rect.width > 0 && rect.height > 0) return rect;
+      }
+    }
+    const fallback = document.querySelector('canvas');
+    return fallback ? fallback.getBoundingClientRect() : null;
+  };
+
+  // 实时位置更新函数
+  const updatePositionRealtime = (element) => {
+    if (!element || !visible) return;
+
+    const canvasRect = getCanvasRect();
+    if (!canvasRect) return;
+    const zoom = store.zoom || 1;
+
+    // 计算元素在视口中的位置
+    const elementX = canvasRect.left + (element.x * zoom);
+    const elementY = canvasRect.top + (element.y * zoom);
+    const elementWidth = element.width * (element.scaleX || 1) * zoom;
+    const elementHeight = element.height * (element.scaleY || 1) * zoom;
+
+    // 计算工具栏位置（快速版本，具备基本碰撞/尺寸自适应）
+    const toolbarElement = toolbarRef.current;
+    let baseWidth = toolbarElement ? toolbarElement.offsetWidth : 400;
+    let baseHeight = toolbarElement ? toolbarElement.offsetHeight : 48;
+
+    // 基于当前布局估算尺寸
+    let currentLayout = { ...layout };
+    let toolbarWidth = baseWidth;
+    let toolbarHeight = baseHeight;
+    if (currentLayout.compact) {
+      toolbarWidth *= 0.85;
+      toolbarHeight *= 0.85;
+    }
+    if (currentLayout.mini) {
+      toolbarWidth *= 0.75;
+      toolbarHeight *= 0.75;
+    }
+    if (currentLayout.vertical) {
+      // 粗略估计竖排后高度变大、宽度变小
+      const t = toolbarWidth;
+      toolbarWidth = Math.max(200, Math.min(260, t * 0.55));
+      toolbarHeight = Math.max(baseHeight, baseHeight * 1.8);
+    }
+
+    let toolbarX = elementX + elementWidth / 2;
+    let toolbarY = elementY - 12;
+
+    // 简单边界检测
+    toolbarX = Math.max(toolbarWidth / 2 + 10,
+      Math.min(window.innerWidth - toolbarWidth / 2 - 10, toolbarX)
+    );
+
+    if (toolbarY - toolbarHeight < 10) {
+      toolbarY = elementY + elementHeight + 12;
+      currentLayout.side = 'bottom';
+    } else {
+      currentLayout.side = 'top';
+    }
+
+    toolbarY = Math.max(toolbarHeight / 2 + 10,
+      Math.min(window.innerHeight - toolbarHeight / 2 - 10, toolbarY)
+    );
+
+    // 决策：如果仍然接近元素边界，尝试左右侧并切换垂直/紧凑/迷你
+    const margin = 8;
+    const elementRect = {
+      left: elementX,
+      right: elementX + elementWidth,
+      top: elementY,
+      bottom: elementY + elementHeight
+    };
+    const toolbarRect = {
+      left: toolbarX - toolbarWidth / 2,
+      right: toolbarX + toolbarWidth / 2,
+      top: toolbarY - toolbarHeight / 2,
+      bottom: toolbarY + toolbarHeight / 2
+    };
+
+    const isIntersect = !(
+      toolbarRect.right < elementRect.left - margin ||
+      toolbarRect.left > elementRect.right + margin ||
+      toolbarRect.bottom < elementRect.top - margin ||
+      toolbarRect.top > elementRect.bottom + margin
+    );
+
+    if (isIntersect) {
+      // 尝试放到左侧或右侧（竖向布局）
+      const spaceLeft = elementRect.left - 10;
+      const spaceRight = window.innerWidth - elementRect.right - 10;
+      const preferRight = spaceRight >= spaceLeft;
+
+      currentLayout.vertical = true;
+      toolbarWidth = Math.max(200, Math.min(260, baseWidth * 0.55));
+      toolbarHeight = Math.max(baseHeight * 1.6, baseHeight + 60);
+      let xCandidate = preferRight ? elementRect.right + 12 + toolbarWidth / 2 : elementRect.left - 12 - toolbarWidth / 2;
+      let yCandidate = elementRect.top + elementHeight / 2;
+
+      // 如果空间不足，开启紧凑或迷你
+      if (preferRight ? spaceRight < toolbarWidth + 12 : spaceLeft < toolbarWidth + 12) {
+        currentLayout.compact = true;
+        toolbarWidth *= 0.9;
+        if ((preferRight ? spaceRight : spaceLeft) < toolbarWidth + 12) {
+          currentLayout.mini = true;
+          toolbarWidth *= 0.85;
+        }
+        xCandidate = preferRight ? elementRect.right + 12 + toolbarWidth / 2 : elementRect.left - 12 - toolbarWidth / 2;
+      }
+
+      toolbarX = Math.max(10 + toolbarWidth / 2, Math.min(window.innerWidth - 10 - toolbarWidth / 2, xCandidate));
+      toolbarY = Math.max(10 + toolbarHeight / 2, Math.min(window.innerHeight - 10 - toolbarHeight / 2, yCandidate));
+      currentLayout.side = preferRight ? 'right' : 'left';
+    }
+
+    setLayout(currentLayout);
+    setPosition({ x: toolbarX, y: toolbarY });
+
+    // 继续下一帧更新
+    if (visible && selectedElement) {
+      animationFrameRef.current = requestAnimationFrame(() =>
+        updatePositionRealtime(selectedElement)
+      );
+    }
+  };
+
+  // 更新工具栏位置（带防抖）
+  const updatePosition = (element) => {
+    if (positionTimeoutRef.current) {
+      clearTimeout(positionTimeoutRef.current);
+    }
+
+    positionTimeoutRef.current = setTimeout(() => {
+      if (!element) return;
+      const canvasRect = getCanvasRect();
+      if (!canvasRect) return;
+      const zoom = store.zoom || 1;
+
+      // 计算元素在视口中的位置和大小
+      const elementX = canvasRect.left + (element.x * zoom);
+      const elementY = canvasRect.top + (element.y * zoom);
+      const elementWidth = element.width * (element.scaleX || 1) * zoom;
+      const elementHeight = element.height * (element.scaleY || 1) * zoom;
+
+      // 获取工具栏的实际尺寸
+      const toolbarElement = toolbarRef.current;
+      const toolbarWidth = toolbarElement ? toolbarElement.offsetWidth : 400;
+      const toolbarHeight = toolbarElement ? toolbarElement.offsetHeight : 48;
+
+      // 智能位置计算 - 优先选择最佳位置
+      const positions = [
+        // 上方中央
+        { x: elementX + elementWidth / 2, y: elementY - 12, priority: 1 },
+        // 下方中央
+        { x: elementX + elementWidth / 2, y: elementY + elementHeight + 12, priority: 2 },
+        // 左侧中央（如果元素够宽）
+        { x: elementX - 12, y: elementY + elementHeight / 2, priority: 3 },
+        // 右侧中央（如果元素够宽）
+        { x: elementX + elementWidth + 12, y: elementY + elementHeight / 2, priority: 4 },
+        // 元素内部中央（最后选择）
+        { x: elementX + elementWidth / 2, y: elementY + elementHeight / 2, priority: 5 }
+      ];
+
+      // 筛选出合适的位置（不超出屏幕边界）
+      const validPositions = positions.filter(pos => {
+        const adjustedX = pos.x - toolbarWidth / 2;
+        const adjustedY = pos.y - toolbarHeight / 2;
+
+        return adjustedX >= 10 &&
+               adjustedX + toolbarWidth <= window.innerWidth - 10 &&
+               adjustedY >= 10 &&
+               adjustedY + toolbarHeight <= window.innerHeight - 10;
+      });
+
+      // 选择优先级最高的位置，如果都没有则选择最接近边界的位置
+      let bestPosition;
+      if (validPositions.length > 0) {
+        bestPosition = validPositions.reduce((best, current) =>
+          current.priority < best.priority ? current : best
+        );
+      } else {
+        // 如果没有完全合适的位置，选择最不超出边界的位置
+        bestPosition = positions.reduce((best, current) => {
+          const currentOverflowX = Math.max(
+            10 - (current.x - toolbarWidth / 2),
+            (current.x + toolbarWidth / 2) - (window.innerWidth - 10),
+            0
+          );
+          const currentOverflowY = Math.max(
+            10 - (current.y - toolbarHeight / 2),
+            (current.y + toolbarHeight / 2) - (window.innerHeight - 10),
+            0
+          );
+          const currentScore = currentOverflowX + currentOverflowY;
+
+          const bestOverflowX = Math.max(
+            10 - (best.x - toolbarWidth / 2),
+            (best.x + toolbarWidth / 2) - (window.innerWidth - 10),
+            0
+          );
+          const bestOverflowY = Math.max(
+            10 - (best.y - toolbarHeight / 2),
+            (best.y + toolbarHeight / 2) - (window.innerHeight - 10),
+            0
+          );
+          const bestScore = bestOverflowX + bestOverflowY;
+
+          return currentScore < bestScore ? current : best;
+        });
+      }
+
+      // 最终位置调整，确保不超过边界
+      let toolbarX = Math.max(10 + toolbarWidth / 2,
+        Math.min(window.innerWidth - 10 - toolbarWidth / 2, bestPosition.x)
+      );
+      let toolbarY = Math.max(10 + toolbarHeight / 2,
+        Math.min(window.innerHeight - 10 - toolbarHeight / 2, bestPosition.y)
+      );
+
+      setPosition({ x: toolbarX, y: toolbarY });
+    }, 16); // 使用16ms以获得更流畅的体验（约60fps）
+  };
+
+  // 监听元素选择变化和实时更新
   useEffect(() => {
     const updateToolbar = () => {
       const selected = store.selectedElements?.[0];
-      
+
       if (selected) {
         setSelectedElement(selected);
         setToolbarType(selected.type);
         updatePosition(selected);
         setVisible(true);
+
+        // 启动实时位置更新
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+        }
+        animationFrameRef.current = requestAnimationFrame(() =>
+          updatePositionRealtime(selected)
+        );
       } else {
         setVisible(false);
         setSelectedElement(null);
         setToolbarType(null);
+
+        // 停止实时位置更新
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = null;
+        }
       }
     };
-    
-    // 更新工具栏位置（带防抖）
-    const updatePosition = (element) => {
-      if (positionTimeoutRef.current) {
-        clearTimeout(positionTimeoutRef.current);
+
+    // 实时监听元素变化和画布事件
+    const handleElementChange = () => {
+      if (selectedElement) {
+        updatePosition(selectedElement);
       }
-      
-      positionTimeoutRef.current = setTimeout(() => {
-        const canvas = document.querySelector('.polotno-canvas-container');
-        if (!canvas || !element) return;
-        
-        const canvasRect = canvas.getBoundingClientRect();
-        const zoom = store.zoom || 1;
-        
-        // 计算元素在视口中的位置
-        const elementX = canvasRect.left + (element.x * zoom);
-        const elementY = canvasRect.top + (element.y * zoom);
-        const elementWidth = element.width * (element.scaleX || 1) * zoom;
-        const elementHeight = element.height * (element.scaleY || 1) * zoom;
-        
-        // 计算工具栏位置（默认在元素上方）
-        let toolbarX = elementX + elementWidth / 2;
-        let toolbarY = elementY - 12; // 上方12px
-        
-        // 边界检测
-        const toolbarWidth = 400; // 估计工具栏宽度
-        const toolbarHeight = 48; // 工具栏高度
-        
-        // 水平边界检测
-        if (toolbarX - toolbarWidth / 2 < 10) {
-          toolbarX = toolbarWidth / 2 + 10;
-        } else if (toolbarX + toolbarWidth / 2 > window.innerWidth - 10) {
-          toolbarX = window.innerWidth - toolbarWidth / 2 - 10;
-        }
-        
-        // 垂直边界检测（如果上方空间不足，显示在下方）
-        if (toolbarY - toolbarHeight < 10) {
-          toolbarY = elementY + elementHeight + 12; // 下方12px
-        }
-        
-        setPosition({ x: toolbarX, y: toolbarY });
-      }, 50); // 50ms 防抖
     };
+
+    // 监听窗口大小变化
+    const handleWindowResize = () => {
+      if (selectedElement) {
+        updatePosition(selectedElement);
+      }
+    };
+
+    // 监听画布滚动
+    const handleCanvasScroll = () => {
+      if (selectedElement) {
+        updatePosition(selectedElement);
+      }
+    };
+
+    // 监听缩放变化
+    const handleZoomChange = () => {
+      if (selectedElement) {
+        updatePosition(selectedElement);
+      }
+    };
+
+    // 添加更多监听事件
+    store.on('change', updateToolbar);
+    store.on('change', handleElementChange); // 监听所有变化
+    window.addEventListener('resize', handleWindowResize);
+    window.addEventListener('scroll', handleCanvasScroll, true); // 捕获阶段以监听所有滚动
+
+    // 监听Polotno特定的缩放变化事件
+    if (store.onZoomChange) {
+      store.onZoomChange(handleZoomChange);
+    }
     
     // 监听画布点击（取消选择）
     const handleCanvasClick = (e) => {
       if (toolbarRef.current && !toolbarRef.current.contains(e.target)) {
         const isCanvasClick = e.target.closest('.polotno-canvas-container');
         const isSidePanelClick = e.target.closest('.polotno-side-panel');
-        
+
         if (isCanvasClick && !isSidePanelClick) {
           // 点击画布空白处
           const clickedElement = e.target.closest('[data-element-id]');
@@ -85,15 +340,37 @@ const SmartFloatingToolbar = observer(({ store }) => {
         }
       }
     };
-    
+
+    // 添加所有事件监听器
     store.on('change', updateToolbar);
+    store.on('change', handleElementChange);
+    window.addEventListener('resize', handleWindowResize);
+    window.addEventListener('scroll', handleCanvasScroll, true);
+
+    if (store.onZoomChange) {
+      store.onZoomChange(handleZoomChange);
+    }
+
     document.addEventListener('mousedown', handleCanvasClick);
-    
+
     return () => {
+      // 清理所有事件监听器
       store.off('change', updateToolbar);
+      store.off('change', handleElementChange);
+      window.removeEventListener('resize', handleWindowResize);
+      window.removeEventListener('scroll', handleCanvasScroll, true);
+
+      if (store.offZoomChange) {
+        store.offZoomChange(handleZoomChange);
+      }
+
       document.removeEventListener('mousedown', handleCanvasClick);
+
       if (positionTimeoutRef.current) {
         clearTimeout(positionTimeoutRef.current);
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
       }
     };
   }, [store]);
@@ -163,17 +440,19 @@ const SmartFloatingToolbar = observer(({ store }) => {
   const handleLayer = (direction) => {
     if (!selectedElement || !store.activePage) return;
     
-    const page = store.activePage;
-    const index = page.children.indexOf(selectedElement);
-    
-    if (direction === 'up' && index < page.children.length - 1) {
-      page.moveChild(selectedElement, index + 1);
-    } else if (direction === 'down' && index > 0) {
-      page.moveChild(selectedElement, index - 1);
-    } else if (direction === 'top') {
-      page.moveChild(selectedElement, page.children.length - 1);
-    } else if (direction === 'bottom') {
-      page.moveChild(selectedElement, 0);
+    try {
+      // 使用 Polotno 元素的正确移动方法
+      if (direction === 'up') {
+        selectedElement.moveUp();
+      } else if (direction === 'down') {
+        selectedElement.moveDown();
+      } else if (direction === 'top') {
+        selectedElement.moveToTop();
+      } else if (direction === 'bottom') {
+        selectedElement.moveToBottom();
+      }
+    } catch (error) {
+      console.warn('图层移动失败:', error);
     }
   };
   
@@ -443,10 +722,19 @@ const SmartFloatingToolbar = observer(({ store }) => {
     }
   };
   
+  // 类名组合
+  const classes = [
+    'smart-floating-toolbar',
+    visible ? 'visible' : '',
+    layout.compact ? 'compact' : '',
+    layout.vertical ? 'vertical' : '',
+    layout.mini ? 'mini' : ''
+  ].filter(Boolean).join(' ');
+
   return (
     <div
       ref={toolbarRef}
-      className={`smart-floating-toolbar ${visible ? 'visible' : ''}`}
+      className={classes}
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,

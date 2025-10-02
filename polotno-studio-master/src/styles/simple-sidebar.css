@@ -88,6 +88,16 @@
     0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
+/* 菜单打开状态 */
+.simple-tool-btn.menu-open {
+  background: var(--sidebar-primary);
+  border-color: var(--sidebar-primary-dark);
+  color: white;
+  box-shadow: 
+    0 4px 16px rgba(99, 102, 241, 0.3),
+    0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
 /* 按下状态 */
 .simple-tool-btn:active {
   transform: scale(0.95);
@@ -244,5 +254,270 @@
     background: var(--gray-50);
     border-color: var(--gray-200);
     color: var(--gray-900);
+  }
+}
+
+/* ==================== 形状选择菜单 ==================== */
+
+/* 背景遮罩 */
+.shape-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 999;
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* 形状菜单容器 */
+.shape-menu {
+  position: fixed;
+  left: 100px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 360px;
+  max-height: 80vh;
+  background: var(--sidebar-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--sidebar-border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-multi);
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* 菜单头部 */
+.shape-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, var(--sidebar-primary) 0%, var(--sidebar-primary-dark) 100%);
+  color: white;
+}
+
+/* 分类标签容器 */
+.shape-categories {
+  display: flex;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--gray-200);
+  padding: 0 16px;
+  background: var(--sidebar-bg);
+}
+
+/* 分类标签 */
+.category-tab {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  color: var(--gray-600);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.category-tab:hover {
+  color: var(--sidebar-primary);
+  background: var(--gray-50);
+}
+
+.category-tab.active {
+  color: var(--sidebar-primary);
+  border-bottom-color: var(--sidebar-primary);
+  font-weight: 600;
+}
+
+.category-tab.active::before {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--sidebar-primary);
+}
+
+/* 分类标签滚动条 */
+.shape-categories::-webkit-scrollbar {
+  height: 3px;
+}
+
+.shape-categories::-webkit-scrollbar-track {
+  background: var(--gray-100);
+}
+
+.shape-categories::-webkit-scrollbar-thumb {
+  background: var(--gray-600);
+  border-radius: 2px;
+}
+
+.shape-menu-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.shape-menu-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.shape-menu-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* 形状网格 */
+.shape-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* 形状项目 */
+.shape-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 8px;
+  background: transparent;
+  border: 2px solid var(--gray-200);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 80px;
+}
+
+.shape-item:hover {
+  background: var(--gray-50);
+  border-color: var(--sidebar-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.shape-item:active {
+  transform: translateY(0) scale(0.95);
+}
+
+/* 形状图标 */
+.shape-icon {
+  font-size: 24px;
+  margin-bottom: 6px;
+  line-height: 1;
+}
+
+/* 形状名称 */
+.shape-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--gray-600);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.shape-item:hover .shape-name {
+  color: var(--gray-900);
+}
+
+/* 滚动条美化 */
+.shape-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.shape-grid::-webkit-scrollbar-track {
+  background: var(--gray-100);
+  border-radius: 3px;
+}
+
+.shape-grid::-webkit-scrollbar-thumb {
+  background: var(--gray-600);
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+
+.shape-grid::-webkit-scrollbar-thumb:hover {
+  background: var(--sidebar-primary);
+}
+
+/* 动画定义 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px) translateY(-50%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(-50%);
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .shape-menu {
+    left: 80px;
+    width: 320px;
+  }
+  
+  .shape-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 16px;
+  }
+  
+  .shape-item {
+    padding: 12px 6px;
+    min-height: 70px;
+  }
+}
+
+@media (max-width: 768px) {
+  .shape-menu {
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100vw - 32px);
+    max-width: 320px;
+  }
+  
+  .shape-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 12px;
+  }
+  
+  .shape-item {
+    padding: 10px 4px;
+    min-height: 60px;
+  }
+  
+  .shape-icon {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+  
+  .shape-name {
+    font-size: 10px;
   }
 }

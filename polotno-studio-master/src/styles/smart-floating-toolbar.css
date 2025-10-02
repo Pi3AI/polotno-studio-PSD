@@ -32,6 +32,43 @@
   transform: translateX(-50%) scale(1) translateY(0);
 }
 
+/* 紧凑模式：用于避免遮挡元素 */
+.smart-floating-toolbar.compact {
+  padding: 4px 6px;
+  gap: 2px;
+}
+
+.smart-floating-toolbar.compact .toolbar-group {
+  gap: 2px;
+  padding: 1px;
+}
+
+.smart-floating-toolbar.compact .toolbar-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 5px;
+}
+
+/* 紧凑模式隐藏文字标签，仅保留图标，减少占用 */
+.smart-floating-toolbar.compact .toolbar-label {
+  display: none;
+}
+
+/* 竖向布局（放在元素左右侧时） */
+.smart-floating-toolbar.vertical {
+  flex-direction: column;
+}
+
+.smart-floating-toolbar.vertical .toolbar-group {
+  flex-direction: column;
+}
+
+/* 迷你模式：更小按钮尺寸 */
+.smart-floating-toolbar.mini .toolbar-btn {
+  width: 24px;
+  height: 24px;
+}
+
 /* 工具组 */
 .toolbar-group {
   display: flex;

@@ -164,7 +164,6 @@ const ContextToolbar = observer(({ element, store, position }) => {
 const UltraModernEditor = observer(({ store }) => {
   const [selectedElement, setSelectedElement] = useState(null);
   const [elementPosition, setElementPosition] = useState(null);
-  const [currentTool, setCurrentTool] = useState('select');
   const [activePanel, setActivePanel] = useState('layers');
   const [zoomLevel, setZoomLevel] = useState(100);
   
@@ -210,11 +209,7 @@ const UltraModernEditor = observer(({ store }) => {
     return () => clearInterval(interval);
   }, [store]);
   
-  // 工具切换 - 简化版，不映射到面板
-  const handleToolChange = (toolId) => {
-    setCurrentTool(toolId);
-    // 移除面板映射逻辑，让用户通过其他方式访问面板
-  };
+  // 移除 handleToolChange - SimpleSidebar 现在直接操作 store
   
   // 导出功能
   const handleExport = async () => {
@@ -265,7 +260,7 @@ const UltraModernEditor = observer(({ store }) => {
       </header>
       
       {/* 简化的左侧导航栏 */}
-      <SimpleSidebar onToolChange={handleToolChange} />
+      <SimpleSidebar store={store} />
       
       {/* 主画布区域 */}
       <main className="ultra-canvas">
