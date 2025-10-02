@@ -163,7 +163,7 @@ const EnhancedTextPanel = ({ store, onClose }) => {
       x: 100,
       y: 100,
       width: 300,
-      height: 'auto',
+      height: 50, // 修复：使用数字而不是'auto'
       fontSize: 32,
       fontFamily: defaultFont,
       fill: '#000000',
@@ -273,7 +273,20 @@ const EnhancedTextPanel = ({ store, onClose }) => {
                 <span className="font-name">{font.fontFamily}</span>
                 <button
                   className="use-font-btn"
-                  onClick={() => addText('示例文字')}
+                  onClick={() => {
+                    if (!store || !store.activePage) return;
+                    store.activePage.addElement({
+                      type: 'text',
+                      text: '示例文字',
+                      x: 100,
+                      y: 100,
+                      width: 200,
+                      height: 40,
+                      fontSize: 24,
+                      fontFamily: font.fontFamily,
+                      fill: '#000000'
+                    });
+                  }}
                   style={{ fontFamily: font.fontFamily }}
                 >
                   预览
