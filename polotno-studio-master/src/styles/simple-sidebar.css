@@ -1,0 +1,248 @@
+/* 
+ * Simple Sidebar - 简洁版左侧工具栏
+ * 保留核心功能和美观设计
+ */
+
+:root {
+  /* 简化的色彩系统 */
+  --sidebar-primary: #6366F1;
+  --sidebar-primary-dark: #4F46E5;
+  --sidebar-bg: rgba(255, 255, 255, 0.95);
+  --sidebar-border: rgba(255, 255, 255, 0.8);
+  
+  /* 中性色 */
+  --gray-50: #F8FAFC;
+  --gray-100: #F1F5F9;
+  --gray-200: #E2E8F0;
+  --gray-600: #52525B;
+  --gray-900: #1E293B;
+  
+  /* 阴影 */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-multi: 
+    0 8px 32px rgba(0, 0, 0, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* ==================== 主容器 ==================== */
+
+.simple-sidebar {
+  position: fixed;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 64px;
+  padding: 12px;
+  background: var(--sidebar-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--sidebar-border);
+  border-radius: 24px;
+  box-shadow: var(--shadow-multi);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  
+  /* 简化的入场动画 */
+  animation: slideIn 0.4s ease-out;
+}
+
+/* ==================== 工具按钮 ==================== */
+
+.simple-tool-btn {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  color: var(--gray-600);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+/* 悬停状态 */
+.simple-tool-btn:hover:not(.active) {
+  background: var(--gray-50);
+  border-color: var(--gray-200);
+  color: var(--gray-900);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 激活状态 */
+.simple-tool-btn.active {
+  background: linear-gradient(135deg, var(--sidebar-primary) 0%, var(--sidebar-primary-dark) 100%);
+  border-color: var(--sidebar-primary-dark);
+  color: white;
+  box-shadow: 
+    0 4px 16px rgba(99, 102, 241, 0.3),
+    0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* 按下状态 */
+.simple-tool-btn:active {
+  transform: scale(0.95);
+}
+
+/* 图标样式 */
+.simple-tool-btn svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2;
+  transition: all 0.2s ease;
+}
+
+.simple-tool-btn.active svg {
+  stroke-width: 2.5;
+}
+
+/* ==================== 工具提示 ==================== */
+
+.tool-tooltip {
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  
+  background: var(--gray-900);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* 小三角箭头 */
+.tool-tooltip::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-right-color: var(--gray-900);
+}
+
+/* 悬停显示提示 */
+.simple-tool-btn:hover .tool-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(4px);
+}
+
+/* 快捷键样式 */
+.tool-shortcut {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  font-size: 11px;
+  font-family: monospace;
+}
+
+/* ==================== 可访问性 ==================== */
+
+.simple-tool-btn:focus-visible {
+  outline: 2px solid var(--sidebar-primary);
+  outline-offset: 3px;
+}
+
+/* ==================== 动画定义 ==================== */
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px) translateY(-50%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(-50%);
+  }
+}
+
+/* ==================== 响应式设计 ==================== */
+
+/* 平板 */
+@media (max-width: 1024px) {
+  .simple-sidebar {
+    left: 16px;
+    width: 56px;
+    padding: 10px;
+  }
+  
+  .simple-tool-btn {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .simple-tool-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* 移动端 */
+@media (max-width: 768px) {
+  .simple-sidebar {
+    left: 8px;
+    bottom: 20px;
+    top: auto;
+    transform: none;
+    flex-direction: row;
+    width: auto;
+    padding: 8px;
+    gap: 6px;
+    max-width: calc(100vw - 16px);
+    overflow-x: auto;
+  }
+  
+  .simple-tool-btn {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+  
+  .tool-tooltip {
+    display: none; /* 移动端隐藏提示 */
+  }
+}
+
+/* ==================== 暗色模式 ==================== */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sidebar-bg: rgba(30, 30, 30, 0.95);
+    --sidebar-border: rgba(255, 255, 255, 0.1);
+    --gray-50: rgba(255, 255, 255, 0.05);
+    --gray-200: rgba(255, 255, 255, 0.1);
+    --gray-600: #94A3B8;
+    --gray-900: #F1F5F9;
+  }
+  
+  .simple-tool-btn {
+    color: var(--gray-600);
+  }
+  
+  .simple-tool-btn:hover:not(.active) {
+    background: var(--gray-50);
+    border-color: var(--gray-200);
+    color: var(--gray-900);
+  }
+}

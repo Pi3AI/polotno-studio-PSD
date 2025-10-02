@@ -1,0 +1,387 @@
+/* 
+ * Ultra Styled Panel - 优化的Polotno侧边面板样式
+ * 与UltraSidebar完美配合的美化设计
+ */
+
+/* 面板容器 */
+.ultra-styled-panel {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, 
+    rgba(20, 20, 28, 0.95) 0%, 
+    rgba(15, 15, 20, 0.98) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 面板头部 */
+.panel-header {
+  padding: 20px 16px 16px;
+  background: linear-gradient(135deg, 
+    rgba(102, 126, 234, 0.08) 0%, 
+    rgba(244, 114, 182, 0.05) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  position: relative;
+  z-index: 10;
+}
+
+.panel-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.3px;
+}
+
+.panel-header-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(102, 126, 234, 0.6),
+    transparent);
+  animation: shimmerLine 3s ease-in-out infinite;
+}
+
+@keyframes shimmerLine {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* 内容包装器 */
+.panel-content-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px;
+  position: relative;
+}
+
+/* 美化滚动条 */
+.panel-content-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.panel-content-wrapper::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 3px;
+}
+
+.panel-content-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(102, 126, 234, 0.3);
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+
+.panel-content-wrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(102, 126, 234, 0.5);
+}
+
+/* 面板底部装饰 */
+.panel-footer {
+  height: 40px;
+  position: relative;
+  pointer-events: none;
+}
+
+.panel-footer-gradient {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(to top,
+    rgba(15, 15, 20, 1) 0%,
+    transparent 100%);
+}
+
+/* 动画状态 */
+.ultra-styled-panel.animating .panel-content-wrapper {
+  opacity: 0.6;
+  transform: scale(0.98);
+  transition: all 0.15s ease-out;
+}
+
+/* Polotno 组件样式覆盖 */
+.ultra-styled-panel .polotno-side-panel {
+  background: transparent !important;
+  border: none !important;
+}
+
+.ultra-styled-panel .polotno-side-panel-container {
+  background: transparent !important;
+}
+
+/* 搜索框美化 */
+.ultra-styled-panel .polotno-side-panel-search {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 10px !important;
+  padding: 10px 16px !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin-bottom: 16px !important;
+  transition: all 0.2s ease !important;
+}
+
+.ultra-styled-panel .polotno-side-panel-search:focus {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(102, 126, 234, 0.5) !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+  outline: none !important;
+}
+
+.ultra-styled-panel .polotno-side-panel-search::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* 面板项目卡片美化 */
+.ultra-styled-panel .polotno-side-panel-item {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 10px !important;
+  margin: 6px !important;
+  transition: all 0.2s ease !important;
+  overflow: hidden;
+  position: relative;
+}
+
+.ultra-styled-panel .polotno-side-panel-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg,
+    transparent 0%,
+    rgba(102, 126, 234, 0.05) 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.ultra-styled-panel .polotno-side-panel-item:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(102, 126, 234, 0.3) !important;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    0 0 20px rgba(102, 126, 234, 0.1) !important;
+}
+
+.ultra-styled-panel .polotno-side-panel-item:hover::before {
+  opacity: 1;
+}
+
+/* 分类标题美化 */
+.ultra-styled-panel .polotno-side-panel-section-title {
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  margin: 20px 6px 12px !important;
+  padding-left: 12px !important;
+  position: relative !important;
+}
+
+.ultra-styled-panel .polotno-side-panel-section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 14px;
+  background: linear-gradient(180deg,
+    rgba(102, 126, 234, 0.8),
+    rgba(244, 114, 182, 0.8));
+  border-radius: 2px;
+}
+
+/* 按钮美化 */
+.ultra-styled-panel button {
+  background: rgba(102, 126, 234, 0.15) !important;
+  border: 1px solid rgba(102, 126, 234, 0.3) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 8px !important;
+  padding: 8px 16px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer;
+}
+
+.ultra-styled-panel button:hover {
+  background: rgba(102, 126, 234, 0.25) !important;
+  border-color: rgba(102, 126, 234, 0.5) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2) !important;
+}
+
+.ultra-styled-panel button:active {
+  transform: translateY(0);
+}
+
+/* 加载状态 */
+.ultra-styled-panel .polotno-side-panel-loader {
+  background: transparent !important;
+}
+
+.ultra-styled-panel .polotno-side-panel-loader::after {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-top-color: rgba(102, 126, 234, 0.8) !important;
+}
+
+/* 空状态 */
+.ultra-styled-panel .polotno-side-panel-empty {
+  color: rgba(255, 255, 255, 0.4) !important;
+  font-size: 14px !important;
+  text-align: center !important;
+  padding: 40px 20px !important;
+}
+
+/* 标签美化 */
+.ultra-styled-panel .polotno-side-panel-tag {
+  background: rgba(102, 126, 234, 0.2) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  border: none !important;
+  border-radius: 16px !important;
+  padding: 4px 12px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  margin: 2px !important;
+  transition: all 0.2s ease !important;
+}
+
+.ultra-styled-panel .polotno-side-panel-tag:hover {
+  background: rgba(102, 126, 234, 0.35) !important;
+  transform: scale(1.05);
+}
+
+/* 图片和素材预览优化 */
+.ultra-styled-panel img {
+  border-radius: 6px !important;
+  transition: transform 0.2s ease !important;
+}
+
+.ultra-styled-panel .polotno-side-panel-item:hover img {
+  transform: scale(1.05);
+}
+
+/* Tab切换美化 */
+.ultra-styled-panel .polotno-side-panel-tabs {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  padding: 8px !important;
+  margin-bottom: 16px !important;
+}
+
+.ultra-styled-panel .polotno-side-panel-tab {
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  padding: 6px 14px !important;
+  margin: 0 4px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+}
+
+.ultra-styled-panel .polotno-side-panel-tab:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.ultra-styled-panel .polotno-side-panel-tab.active {
+  background: rgba(102, 126, 234, 0.2) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(102, 126, 234, 0.4) !important;
+}
+
+/* 输入框美化 */
+.ultra-styled-panel input[type="text"],
+.ultra-styled-panel input[type="number"],
+.ultra-styled-panel textarea {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  padding: 8px 12px !important;
+  transition: all 0.2s ease !important;
+}
+
+.ultra-styled-panel input:focus,
+.ultra-styled-panel textarea:focus {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(102, 126, 234, 0.5) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .ultra-styled-panel {
+    width: 240px;
+  }
+  
+  .panel-header {
+    padding: 16px 12px 12px;
+  }
+  
+  .panel-title {
+    font-size: 14px;
+  }
+}
+
+/* 动画效果 */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.ultra-styled-panel .polotno-side-panel-item {
+  animation: slideInRight 0.3s ease-out;
+  animation-fill-mode: backwards;
+}
+
+.ultra-styled-panel .polotno-side-panel-item:nth-child(1) { animation-delay: 0.05s; }
+.ultra-styled-panel .polotno-side-panel-item:nth-child(2) { animation-delay: 0.1s; }
+.ultra-styled-panel .polotno-side-panel-item:nth-child(3) { animation-delay: 0.15s; }
+.ultra-styled-panel .polotno-side-panel-item:nth-child(4) { animation-delay: 0.2s; }
+.ultra-styled-panel .polotno-side-panel-item:nth-child(5) { animation-delay: 0.25s; }
+
+/* 特殊效果 - 光晕 */
+.ultra-styled-panel::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center,
+    rgba(102, 126, 234, 0.03) 0%,
+    transparent 70%);
+  animation: rotateGlow 20s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes rotateGlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

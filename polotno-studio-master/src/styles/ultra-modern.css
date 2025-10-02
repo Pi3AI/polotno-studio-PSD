@@ -252,25 +252,65 @@ body::before {
   box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
 }
 
-/* ==================== 左侧工具栏 ==================== */
+/* ==================== 集成的左侧导航栏 ==================== */
 
-.ultra-sidebar {
+.ultra-integrated-sidebar {
   position: fixed;
-  left: 16px;
-  top: calc(var(--header-height) + 16px);
-  bottom: 16px;
+  left: 0;
+  top: var(--header-height);
+  bottom: 0;
+  display: flex;
+  z-index: 100;
+}
+
+/* UltraSidebar 工具按钮栏 */
+.ultra-sidebar-container {
   width: var(--sidebar-width);
   background: var(--bg-glass);
   backdrop-filter: blur(var(--blur-lg));
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-xl);
+  border-right: 1px solid var(--border-glass);
   padding: 16px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  z-index: 100;
   box-shadow: var(--shadow-lg);
+}
+
+/* Polotno 侧边面板 */
+.ultra-side-panel {
+  width: 280px;
+  background: linear-gradient(180deg, 
+    rgba(20, 20, 28, 0.95) 0%, 
+    rgba(15, 15, 20, 0.98) 100%);
+  border-right: 1px solid var(--border-glass);
+  overflow: hidden;
+  position: relative;
+}
+
+/* 添加发光边缘效果 */
+.ultra-side-panel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(102, 126, 234, 0.5) 50%,
+    transparent 100%);
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+/* 隐藏原始的 ultra-sidebar 样式 */
+.ultra-sidebar {
+  display: none;
 }
 
 .tool-item {
@@ -364,7 +404,7 @@ body::before {
 .ultra-canvas {
   position: fixed;
   top: calc(var(--header-height) + 16px);
-  left: calc(var(--sidebar-width) + 32px);
+  left: calc(var(--sidebar-width) + 280px + 16px); /* 工具栏 + 面板 + 间距 */
   right: calc(var(--panel-width) + 16px);
   bottom: 16px;
   background: var(--bg-elevated);

@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
-import { PolotnoContainer, SidePanelWrap, WorkspaceWrap } from 'polotno';
+import { PolotnoContainer, WorkspaceWrap } from 'polotno';
 import { Toolbar } from 'polotno/toolbar/toolbar';
 import { ZoomButtons } from 'polotno/toolbar/zoom-buttons';
 import { Workspace } from 'polotno/canvas/workspace';
-import { SidePanel, DEFAULT_SECTIONS } from 'polotno/side-panel';
 import { PagesTimeline } from 'polotno/pages-timeline';
 
 // 导入智能浮动工具栏
 import SmartFloatingToolbar from './SmartFloatingToolbar';
-// 导入超级侧边栏
-import UltraSidebar from './UltraSidebar';
+// 导入简化版侧边栏
+import SimpleSidebar from './SimpleSidebar';
 
 // 导入样式
 import '../styles/ultra-modern.css';
@@ -194,8 +193,10 @@ const UltraModernEditor = observer(({ store }) => {
       }
     };
     
-    store.on('change', updateSelection);
-    return () => store.off('change', updateSelection);
+    // 使用 MobX autorun 或简单的定时检查来监听变化
+    updateSelection();
+    const interval = setInterval(updateSelection, 100);
+    return () => clearInterval(interval);
   }, [store]);
   
   // 监听缩放变化
@@ -204,29 +205,15 @@ const UltraModernEditor = observer(({ store }) => {
       setZoomLevel(Math.round(store.zoom * 100));
     };
     
-    store.on('change', updateZoom);
-    return () => store.off('change', updateZoom);
+    updateZoom();
+    const interval = setInterval(updateZoom, 100);
+    return () => clearInterval(interval);
   }, [store]);
   
-  // 工具切换
+  // 工具切换 - 简化版，不映射到面板
   const handleToolChange = (toolId) => {
     setCurrentTool(toolId);
-    
-    const sectionMap = {
-      'text': 'text',
-      'images': 'photos',
-      'shapes': 'elements',
-      'templates': 'templates',
-      'background': 'background',
-      'upload': 'upload',
-      'ai': 'ai-images'
-    };
-    
-    const sectionName = sectionMap[toolId] || 'templates';
-    
-    if (store?.openSidePanel) {
-      store.openSidePanel(sectionName);
-    }
+    // 移除面板映射逻辑，让用户通过其他方式访问面板
   };
   
   // 导出功能
@@ -277,21 +264,13 @@ const UltraModernEditor = observer(({ store }) => {
         </div>
       </header>
       
-      {/* 使用新的超级侧边栏 */}
-      <UltraSidebar 
-        store={store} 
-        currentTool={currentTool} 
-        onToolChange={handleToolChange} 
-      />
+      {/* 简化的左侧导航栏 */}
+      <SimpleSidebar onToolChange={handleToolChange} />
       
       {/* 主画布区域 */}
       <main className="ultra-canvas">
         <div className="canvas-viewport">
           <PolotnoContainer className="polotno-app-container">
-            <SidePanelWrap>
-              <SidePanel store={store} sections={DEFAULT_SECTIONS} />
-            </SidePanelWrap>
-            
             <WorkspaceWrap>
               <Toolbar store={store} />
               <Workspace store={store} />

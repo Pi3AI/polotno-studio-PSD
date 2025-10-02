@@ -55,7 +55,13 @@ DEFAULT_SECTIONS.splice(3, 1, ShapesSection);
 DEFAULT_SECTIONS.splice(3, 0, IconsSection);
 // add two more sections
 DEFAULT_SECTIONS.push(QuotesSection, QrSection);
-DEFAULT_SECTIONS.unshift(UploadSection);
+// replace default upload section with custom one
+const uploadIndex = DEFAULT_SECTIONS.findIndex(section => section.name === 'upload');
+if (uploadIndex !== -1) {
+  DEFAULT_SECTIONS[uploadIndex] = UploadSection;
+} else {
+  DEFAULT_SECTIONS.unshift(UploadSection);
+}
 DEFAULT_SECTIONS.unshift(MyDesignsSection);
 // add layers section
 DEFAULT_SECTIONS.push(LayersSection);
