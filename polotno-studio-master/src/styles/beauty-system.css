@@ -60,7 +60,7 @@
   /* 工具栏高度 */
   --topbar-height: 56px;
   --toolbar-height: 48px;
-  --sidebar-width: 72px;
+  --sidebar-width: 52px;
   --panel-width: 320px;
 }
 
@@ -279,63 +279,52 @@ body {
   transform: scale(0.98);
 }
 
-/* ==================== 左侧工具栏优化 ==================== */
+/* ==================== 左侧工具栏优化 - 极简风格 ==================== */
 
 .left-toolbar {
   position: fixed;
-  left: var(--spacing-lg);
-  top: calc(var(--topbar-height) + var(--spacing-xl));
-  bottom: var(--spacing-xl);
-  width: var(--sidebar-width);
+  left: 0;
+  top: var(--topbar-height);
+  bottom: 0;
+  width: 52px;
   background: var(--bg-secondary);
-  border-radius: var(--radius-xl);
-  padding: var(--spacing-md);
-  box-shadow: var(--shadow-lg);
+  border-right: 1px solid var(--border-primary);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  align-items: center;
+  padding: var(--spacing-md) 0;
+  gap: var(--spacing-xs);
   z-index: 100;
 }
 
-.tool-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm);
-  background: var(--bg-tertiary);
-  border-radius: var(--radius-lg);
-}
-
-.tool-group-title {
-  font-size: 11px;
+.left-toolbar-header {
+  font-size: 10px;
   font-weight: 600;
   color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 0 var(--spacing-xs);
+  padding: var(--spacing-sm) 0;
   margin-bottom: var(--spacing-xs);
 }
 
 .tool-btn {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-secondary);
+  background: transparent;
   border: none;
   border-radius: var(--radius-md);
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
   cursor: pointer;
   position: relative;
-  transition: all var(--transition-fast) cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-fast) ease;
 }
 
 .tool-btn:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
-  transform: scale(1.08);
-  box-shadow: var(--shadow-sm);
 }
 
 .tool-btn:active {
@@ -343,38 +332,71 @@ body {
 }
 
 .tool-btn.active {
-  background: var(--brand-primary);
-  color: var(--text-inverse);
-  box-shadow: var(--shadow-md);
+  color: var(--brand-primary);
+  background: var(--brand-light);
 }
 
-.tool-btn.active:hover {
-  background: var(--brand-secondary);
+.tool-btn.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 24px;
+  background: var(--brand-primary);
+  border-radius: 0 2px 2px 0;
 }
 
 .tool-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.tool-divider {
   width: 24px;
-  height: 24px;
+  height: 1px;
+  background: var(--border-secondary);
+  margin: var(--spacing-sm) 0;
 }
 
 .tool-tooltip {
   position: absolute;
-  left: calc(100% + var(--spacing-sm));
+  left: calc(100% + var(--spacing-xs));
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-50%) scale(0.95);
   background: var(--text-primary);
   color: var(--text-inverse);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
   font-size: 12px;
+  font-weight: 500;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--transition-fast) ease;
+  transition: all var(--transition-fast) ease;
+  z-index: 9999;
 }
 
 .tool-btn:hover .tool-tooltip {
   opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+
+.tool-tooltip::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-right-color: var(--text-primary);
+}
+
+.upload-btn-wrapper {
+  margin-top: auto;
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--border-secondary);
 }
 
 /* ==================== 顶部工具栏美化 ==================== */
@@ -439,12 +461,10 @@ body {
 .canvas-container {
   position: fixed;
   top: var(--topbar-height);
-  left: calc(var(--sidebar-width) + var(--spacing-xl) * 2);
-  right: calc(var(--panel-width) + var(--spacing-xl));
-  bottom: var(--spacing-xl);
+  left: var(--sidebar-width);
+  right: var(--panel-width);
+  bottom: 0;
   background: var(--bg-tertiary);
-  border-radius: var(--radius-xl);
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.04);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -507,13 +527,12 @@ body {
 
 .layers-panel {
   position: fixed;
-  right: var(--spacing-lg);
-  top: calc(var(--topbar-height) + var(--spacing-xl));
-  bottom: var(--spacing-xl);
+  right: 0;
+  top: var(--topbar-height);
+  bottom: 0;
   width: var(--panel-width);
   background: var(--bg-secondary);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
+  border-left: 1px solid var(--border-primary);
   display: flex;
   flex-direction: column;
   overflow: hidden;
