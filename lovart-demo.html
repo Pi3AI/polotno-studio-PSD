@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lovart Design Studio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f5f5f7;
+            overflow: hidden;
+        }
+
+        .Lovart-editor {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Navigation */
+        .top-nav {
+            height: 56px;
+            background: white;
+            border-bottom: 1px solid #e5e5e7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            padding: 8px 12px;
+            color: #1d1d1f;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: #f0f0f2;
+        }
+
+        .search-bar {
+            width: 320px;
+            padding: 8px 16px;
+            border: 1px solid #e5e5e7;
+            border-radius: 20px;
+            font-size: 14px;
+            outline: none;
+            background: #f5f5f7;
+        }
+
+        .search-bar::placeholder {
+            color: #999;
+        }
+
+        .search-bar:focus {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .share-btn {
+            padding: 8px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .share-btn:hover {
+            background: #5a67d8;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Left Toolbar */
+        .left-toolbar {
+            width: 80px;
+            background: white;
+            border-right: 1px solid #e5e5e7;
+            padding: 16px 0;
+        }
+
+        .tool-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 0;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .tool-item:hover {
+            background: #f5f5f7;
+        }
+
+        .tool-item.active {
+            background: #f0f0f2;
+        }
+
+        .tool-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 24px;
+            background: #667eea;
+        }
+
+        .tool-icon {
+            font-size: 22px;
+            color: #6e6e73;
+            margin-bottom: 4px;
+        }
+
+        .tool-item.active .tool-icon {
+            color: #667eea;
+        }
+
+        .tool-label {
+            font-size: 11px;
+            color: #6e6e73;
+        }
+
+        /* Canvas Area */
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f5f5f7;
+        }
+
+        .canvas-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            overflow: auto;
+        }
+
+        .canvas {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            width: 90%;
+            max-width: 1200px;
+            min-height: 600px;
+            padding: 40px;
+            position: relative;
+        }
+
+        .template-showcase {
+            display: flex;
+            gap: 30px;
+        }
+
+        .template-card {
+            background: white;
+            border: 1px solid #e5e5e7;
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s;
+        }
+
+        .template-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .main-template {
+            flex: 1.5;
+            display: flex;
+            gap: 24px;
+        }
+
+        .avatar-section {
+            width: 120px;
+        }
+
+        .avatar-placeholder {
+            width: 120px;
+            height: 120px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><rect width="120" height="120" fill="%23f0f0f2"/><circle cx="60" cy="40" r="20" fill="%23d0d0d2"/><path d="M 30 80 Q 60 60 90 80 L 90 120 L 30 120 Z" fill="%23d0d0d2"/></svg>') center/cover;
+            border-radius: 12px;
+        }
+
+        .content-section {
+            flex: 1;
+        }
+
+        .content-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 8px;
+        }
+
+        .content-section p {
+            font-size: 14px;
+            color: #6e6e73;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .email-field {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: #f5f5f7;
+            border-radius: 8px;
+        }
+
+        .secondary-templates {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .quote-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .add-section-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 2px dashed #d0d0d2;
+            border-radius: 8px;
+            color: #6e6e73;
+            font-size: 13px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        .image-placeholder {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(135deg, #e0e0e2 0%, #f0f0f2 100%);
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        .fab-button {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Bottom Controls */
+        .bottom-controls {
+            height: 60px;
+            background: white;
+            border-top: 1px solid #e5e5e7;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #e5e5e7;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zoom-control {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f5f5f7;
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+
+        .zoom-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* Right Panel */
+        .right-panel {
+            width: 320px;
+            background: white;
+            border-left: 1px solid #e5e5e7;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 16px;
+            border-bottom: 1px solid #e5e5e7;
+        }
+
+        .panel-tabs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .panel-tab {
+            flex: 1;
+            padding: 10px;
+            background: #f5f5f7;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #6e6e73;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 16px;
+        }
+
+        .layer-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f5f5f7;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+
+        .drag-upload-area {
+            height: 180px;
+            border: 2px dashed #d0d0d2;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        .more-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: #f5f5f7;
+            border-radius: 50%;
+            font-size: 24px;
+            color: #6e6e73;
+            cursor: pointer;
+            margin: 0 auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="Lovart-editor">
+        <!-- Top Navigation -->
+        <div class="top-nav">
+            <div class="nav-left">
+                <div class="logo">
+                    <div class="logo-icon">L</div>
+                    <span class="logo-text">Lovart</span>
+                </div>
+                <div class="nav-menu">
+                    <button class="nav-btn">File</button>
+                    <button class="nav-btn">Edit</button>
+                    <button class="nav-btn">View</button>
+                    <input type="text" class="search-bar" placeholder="Tell AI what to do...">
+                </div>
+            </div>
+            <div class="nav-right">
+                <button class="share-btn">Share</button>
+                <div class="user-avatar">10</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Left Toolbar -->
+            <div class="left-toolbar">
+                <div class="tool-item active">
+                    <div class="tool-icon">◈</div>
+                    <div class="tool-label">模板</div>
+                </div>
+                <div class="tool-item">
+                    <div class="tool-icon">△</div>
+                    <div class="tool-label">上传</div>
+                </div>
+                <div class="tool-item">
+                    <div class="tool-icon">T</div>
+                    <div class="tool-label">文字</div>
+                </div>
+                <div class="tool-item">
+                    <div class="tool-icon">○</div>
+                    <div class="tool-label">元素</div>
+                </div>
+                <div class="tool-item">
+                    <div class="tool-icon">◇</div>
+                    <div class="tool-label">品牌</div>
+                </div>
+                <div class="tool-item">
+                    <div class="tool-icon">⊡</div>
+                    <div class="tool-label">调整大小</div>
+                </div>
+                <div class="tool-item">
+                    <div class="tool-icon">▦</div>
+                    <div class="tool-label">背景</div>
+                </div>
+                <div class="tool-item">
+                    <div class="tool-icon">✏</div>
+                    <div class="tool-label">绘图</div>
+                </div>
+            </div>
+
+            <!-- Canvas Area -->
+            <div class="canvas-container">
+                <div class="canvas-wrapper">
+                    <div class="canvas">
+                        <div class="template-showcase">
+                            <div class="template-card main-template">
+                                <div class="avatar-section">
+                                    <div class="avatar-placeholder"></div>
+                                </div>
+                                <div class="content-section">
+                                    <h3>Select name</h3>
+                                    <p>Add your name and contact details here. You can edit and format text with bottom toolbar editor</p>
+                                    
+                                    <h3>Type and Role</h3>
+                                    <p>Add your type and role here. Include your professional experience and key skills</p>
+                                    
+                                    <div class="email-field">
+                                        <span>✉ Email</span>
+                                        <span>mary@gmail.com</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="secondary-templates">
+                                <div class="template-card">
+                                    <h3>Welcome to Lovart.</h3>
+                                    <p>We bring creativity and smart editing together</p>
+                                    <button class="quote-btn">Try it out!</button>
+                                </div>
+                                
+                                <div class="template-card">
+                                    <h3>Type and Role</h3>
+                                    <p>Add more details about your work experience, key achievements and skills</p>
+                                    <button class="add-section-btn">＋ Add another text section</button>
+                                </div>
+
+                                <div class="template-card">
+                                    <h3>Explore More</h3>
+                                    <p>Discover additional features and templates to enhance your creative projects</p>
+                                    <div class="image-placeholder"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button class="fab-button">買舒設定</button>
+                    </div>
+                </div>
+
+                <!-- Bottom Controls -->
+                <div class="bottom-controls">
+                    <div class="pagination">
+                        <button class="page-btn">◀</button>
+                        <span>1 / 1</span>
+                        <button class="page-btn">▶</button>
+                    </div>
+                    <div class="zoom-control">
+                        <button class="zoom-btn">－</button>
+                        <span>20%</span>
+                        <button class="zoom-btn">＋</button>
+                    </div>
+                    <button style="padding: 8px 16px; background: #f5f5f7; border: 1px solid #e5e5e7; border-radius: 8px; cursor: pointer;">＋ 20%</button>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <div class="panel-header">
+                    <div class="panel-tabs">
+                        <button class="panel-tab">
+                            <span>▦</span>
+                            <span>圖層</span>
+                        </button>
+                        <button class="panel-tab">
+                            <span>T</span>
+                            <span>文本</span>
+                        </button>
+                        <button class="panel-tab">
+                            <span>⊞</span>
+                            <span>群組</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="panel-content">
+                    <div class="layer-item">
+                        <span>▦</span>
+                        <span>Layer</span>
+                    </div>
+                    <div class="layer-item">
+                        <span>T</span>
+                        <span>Text</span>
+                    </div>
+                    <div class="layer-item">
+                        <span>⊞</span>
+                        <span>Group</span>
+                    </div>
+                    <div class="layer-item">
+                        <span>⊞</span>
+                        <span>Group</span>
+                    </div>
+                    
+                    <div class="drag-upload-area">
+                        <div style="text-align: center;">
+                            <div class="upload-icon">📁</div>
+                            <p>Drag uploads here</p>
+                        </div>
+                    </div>
+                    
+                    <button class="more-btn">•••</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add interactivity
+        document.querySelectorAll('.tool-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.tool-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Zoom controls
+        let zoom = 20;
+        const zoomDisplay = document.querySelector('.zoom-control span');
+        document.querySelectorAll('.zoom-btn').forEach((btn, index) => {
+            btn.addEventListener('click', function() {
+                if (index === 0 && zoom > 10) {
+                    zoom -= 10;
+                } else if (index === 1 && zoom < 200) {
+                    zoom += 10;
+                }
+                zoomDisplay.textContent = zoom + '%';
+            });
+        });
+    </script>
+</body>
+</html>

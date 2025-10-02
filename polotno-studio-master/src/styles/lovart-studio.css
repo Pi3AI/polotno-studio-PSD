@@ -1,0 +1,599 @@
+/* Lovart Studio 样式 - 完全复刻截图设计 */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.lovart-editor {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #f5f5f7;
+  overflow: hidden;
+}
+
+/* 顶部导航栏 */
+.lovart-top-nav {
+  height: 56px;
+  background: white;
+  border-bottom: 1px solid #e5e5e7;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  z-index: 100;
+}
+
+.lovart-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.lovart-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.lovart-logo-icon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.lovart-logo-text {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+.lovart-nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.lovart-nav-btn {
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  color: #1d1d1f;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.lovart-nav-btn:hover {
+  background: #f0f0f2;
+}
+
+.lovart-search-bar {
+  width: 320px;
+  padding: 8px 16px;
+  border: 1px solid #e5e5e7;
+  border-radius: 20px;
+  font-size: 14px;
+  outline: none;
+  background: #f5f5f7;
+  transition: all 0.2s;
+}
+
+.lovart-search-bar::placeholder {
+  color: #999;
+}
+
+.lovart-search-bar:focus {
+  border-color: #667eea;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.lovart-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.lovart-share-btn {
+  padding: 8px 20px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.lovart-share-btn:hover {
+  background: #5a67d8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.lovart-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.lovart-user-avatar:hover {
+  transform: scale(1.05);
+}
+
+/* 主内容区域 */
+.lovart-main-content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+/* 悬浮圆形图标工具栏 */
+.lovart-floating-toolbar {
+  position: fixed;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  width: 72px;
+}
+
+.lovart-toolbar-container {
+  background: #FAFAFA;
+  border: 1px solid #E8E8E8;
+  border-radius: 16px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.lovart-tool-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: white;
+  border: 1.5px solid #E8E8E8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #525252;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 200ms ease-out;
+  position: relative;
+  padding: 0;
+  outline: none;
+}
+
+.lovart-tool-button:hover {
+  border-color: #1A1A1A;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.lovart-tool-button:active {
+  transform: translateY(0);
+}
+
+.lovart-tool-button.active {
+  background: #1A1A1A;
+  color: white;
+  border-color: #1A1A1A;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.lovart-tool-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* 画布容器 - 不再需要为工具栏预留空间 */
+.lovart-canvas-container {
+  flex: 1;
+  display: flex;
+  background: #f5f5f7;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 侧边面板 - 已移除 */
+.lovart-side-panel {
+  display: none !important;
+}
+
+/* 画布包装器 */
+.lovart-canvas-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: #f5f5f7;
+}
+
+/* 工具栏包装 */
+.lovart-toolbar-wrapper {
+  background: white;
+  border-bottom: 1px solid #e5e5e7;
+  padding: 8px;
+  z-index: 30;
+}
+
+/* 工作区 */
+.lovart-workspace {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  overflow: auto;
+}
+
+/* Polotno画布样式 */
+.lovart-workspace .polotno-workspace {
+  background: white !important;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* 缩放按钮 */
+.lovart-zoom-buttons {
+  position: absolute;
+  bottom: 80px;
+  right: 20px;
+  z-index: 50;
+}
+
+/* 底部控制栏 */
+.lovart-bottom-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: white;
+  border-top: 1px solid #e5e5e7;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 45;
+}
+
+.lovart-pagination {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lovart-page-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e5e5e7;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #6e6e73;
+  transition: all 0.2s;
+}
+
+.lovart-page-btn:hover {
+  background: #f5f5f7;
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.lovart-page-info {
+  font-size: 14px;
+  color: #6e6e73;
+  min-width: 60px;
+  text-align: center;
+}
+
+.lovart-zoom-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f5f5f7;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.lovart-zoom-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #6e6e73;
+  transition: all 0.2s;
+}
+
+.lovart-zoom-btn:hover {
+  background: #667eea;
+  color: white;
+}
+
+.lovart-zoom-value {
+  font-size: 14px;
+  color: #1d1d1f;
+  min-width: 50px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.lovart-add-page-btn {
+  padding: 8px 16px;
+  background: #f5f5f7;
+  border: 1px solid #e5e5e7;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #6e6e73;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.lovart-add-page-btn:hover {
+  background: white;
+  border-color: #667eea;
+  color: #667eea;
+}
+
+/* 右侧面板 */
+.lovart-right-panel {
+  width: 320px;
+  background: white;
+  border-left: 1px solid #e5e5e7;
+  display: flex;
+  flex-direction: column;
+  z-index: 40;
+}
+
+.lovart-panel-header {
+  padding: 16px;
+  border-bottom: 1px solid #e5e5e7;
+}
+
+.lovart-panel-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.lovart-panel-tab {
+  flex: 1;
+  padding: 10px;
+  background: #f5f5f7;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #6e6e73;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.lovart-panel-tab:hover {
+  background: #e5e5e7;
+}
+
+.lovart-panel-tab.active {
+  background: #667eea;
+  color: white;
+}
+
+.lovart-tab-icon {
+  font-size: 16px;
+}
+
+.lovart-panel-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.lovart-layer-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.lovart-layer-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f5f5f7;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.lovart-layer-item:hover {
+  background: #e5e5e7;
+}
+
+.lovart-layer-item.selected {
+  background: #667eea;
+  color: white;
+}
+
+.lovart-layer-item.selected .lovart-layer-icon,
+.lovart-layer-item.selected .lovart-layer-name {
+  color: white;
+}
+
+.lovart-layer-icon {
+  font-size: 18px;
+  color: #667eea;
+}
+
+.lovart-layer-name {
+  font-size: 14px;
+  color: #1d1d1f;
+  flex: 1;
+}
+
+.lovart-drag-upload-area {
+  height: 180px;
+  border: 2px dashed #d0d0d2;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.lovart-drag-upload-area:hover {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.lovart-drag-upload-area.dragging {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.lovart-upload-content {
+  text-align: center;
+}
+
+.lovart-upload-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.lovart-upload-content p {
+  font-size: 14px;
+  color: #6e6e73;
+}
+
+.lovart-more-options {
+  display: flex;
+  justify-content: center;
+  padding: 12px;
+}
+
+.lovart-more-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #f5f5f7;
+  border-radius: 50%;
+  font-size: 24px;
+  color: #6e6e73;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.lovart-more-btn:hover {
+  background: #e5e5e7;
+  color: #667eea;
+}
+
+/* 加载遮罩 */
+.lovart-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* 覆盖Polotno默认样式 */
+.polotno-side-panel-container {
+  height: 100% !important;
+}
+
+.polotno-workspace-container {
+  background: transparent !important;
+}
+
+.polotno-page-container {
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* 响应式调整 */
+@media (max-width: 1024px) {
+  .lovart-right-panel {
+    width: 280px;
+  }
+  
+  .lovart-search-bar {
+    width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .lovart-left-toolbar {
+    width: 60px;
+  }
+  
+  .lovart-tool-label {
+    display: none;
+  }
+  
+  .lovart-right-panel {
+    position: absolute;
+    right: -320px;
+    transition: right 0.3s;
+  }
+  
+  .lovart-right-panel.show {
+    right: 0;
+  }
+}

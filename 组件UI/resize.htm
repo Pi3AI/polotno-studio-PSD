@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resize Options Component (Full View)</title>
+    <style>
+        :root {
+            --panel-bg: #FFFFFF;
+            --app-bg: #F0F2F5;
+            --text-primary: #1C1C1E;
+            --text-secondary: #6A6A6E;
+            --border-color: #E5E7EB;
+            --hover-bg: #F3F4F6;
+            --link-color: #3B82F6;
+            --border-radius: 12px;
+            --shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--app-bg);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top */
+            padding: 40px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* --- Main Panel Container --- */
+        .resize-panel {
+            width: 360px;
+            /* REMOVED: max-height property to allow expansion */
+            background-color: var(--panel-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- Search Bar --- */
+        .panel-search {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        .search-bar {
+            position: relative;
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--hover-bg);
+            font-size: 15px;
+            box-sizing: border-box;
+            outline-color: var(--link-color);
+        }
+        .search-bar svg {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            width: 20px;
+            height: 20px;
+        }
+
+        /* --- Content Area --- */
+        .panel-content {
+            padding: 8px;
+            /* REMOVED: overflow-y and scrollbar styles */
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 8px;
+        }
+        .section-header h2 {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        .section-header .see-all-link {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--link-color);
+            text-decoration: none;
+        }
+
+        /* --- Lists --- */
+        .item-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Preset Item (e.g., Instagram Story) */
+        .preset-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .preset-item:hover {
+            background-color: var(--hover-bg);
+        }
+        .preset-item input[type="checkbox"] {
+            margin-right: 12px;
+            width: 18px;
+            height: 18px;
+        }
+        .preset-item .label-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .preset-title {
+            font-size: 15px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        .preset-dimensions {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Category Item (e.g., Social Media) */
+        .category-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 8px;
+            border-radius: 6px;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: background-color 0.2s ease;
+        }
+        .category-item:hover {
+            background-color: var(--hover-bg);
+        }
+        .category-item .icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .category-item .icon svg {
+             width: 24px;
+            height: 24px;
+        }
+        .category-name {
+            flex-grow: 1;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .chevron-icon {
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="resize-panel">
+        <div class="panel-search">
+            <div class="search-bar">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="search" placeholder="Search for a size...">
+            </div>
+        </div>
+
+        <div class="panel-content">
+            <section>
+                <div class="section-header">
+                    <h2>Recommended</h2>
+                    <a href="#" class="see-all-link">See all</a>
+                </div>
+                <ul class="item-list">
+                    <li>
+                        <label class="preset-item">
+                            <input type="checkbox">
+                            <div class="label-group">
+                                <span class="preset-title">Instagram Story</span>
+                                <span class="preset-dimensions">1080 × 1920 pixels</span>
+                            </div>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="preset-item">
+                            <input type="checkbox">
+                            <div class="label-group">
+                                <span class="preset-title">Instagram Post (4:5)</span>
+                                <span class="preset-dimensions">1080 × 1350 pixels</span>
+                            </div>
+                        </label>
+                    </li>
+                    <li>
+                        <label class="preset-item">
+                            <input type="checkbox">
+                            <div class="label-group">
+                                <span class="preset-title">Facebook Post (Landscape)</span>
+                                <span class="preset-dimensions">940 × 788 pixels</span>
+                            </div>
+                        </label>
+                    </li>
+                </ul>
+            </section>
+
+            <section>
+                <div class="section-header">
+                    <h2>Browse by category</h2>
+                </div>
+                <ul class="item-list">
+                    <li>
+                        <a href="#" class="category-item">
+                            <div class="icon">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 6V5C14 3.89543 13.1046 3 12 3C10.8954 3 10 3.89543 10 5V6M6 10H5C3.89543 10 3 10.8954 3 12C3 13.1046 3.89543 14 5 14H6M18 10H19C20.1046 10 21 10.8954 21 12C21 13.1046 20.1046 14 19 14H18M10 18V19C10 20.1046 10.8954 21 12 21C13.1046 21 14 20.1046 14 19V18M6 14L8 16L10 14M18 14L16 16L14 14M10 10L8 8L6 10M14 10L16 8L18 10M17 17H7C5.89543 17 5 16.1046 5 15V9C5 7.89543 5.89543 7 7 7H17C18.1046 7 19 7.89543 19 9V15C19 16.1046 18.1046 17 17 17Z" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                            </div>
+                            <span class="category-name">Custom Size</span>
+                            <svg class="chevron-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="category-item">
+                            <div class="icon">
+                                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#F43F5E"><path d="M12.001 4.529c2.349-2.109 5.979-2.039 8.242.228 2.262 2.268 2.34 5.88.236 8.236l-8.48 8.492-8.478-8.492c-2.104-2.356-2.025-5.974.236-8.236 2.265-2.264 5.888-2.34 8.244-.228z"></path></svg>
+                            </div>
+                            <span class="category-name">Social Media</span>
+                             <svg class="chevron-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="category-item">
+                            <div class="icon">
+                                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#8B5CF6"><path d="M21 7H3C2.44772 7 2 7.44772 2 8V16C2 16.5523 2.44772 17 3 17H21C21.5523 17 22 16.5523 22 16V8C22 7.44772 21.5523 7 21 7ZM20 9V10H16V9H20ZM14 9V10H10V9H14ZM8 9V10H4V9H8ZM20 12V13H16V12H20ZM14 12V13H10V12H14ZM8 12V13H4V12H8ZM20 15V14H16V15H20Z"></path></svg>
+                            </div>
+                            <span class="category-name">Print Products</span>
+                             <svg class="chevron-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                        </a>
+                    </li>
+                     <li>
+                        <a href="#" class="category-item">
+                            <div class="icon">
+                                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#F59E0B"><path d="M22 5V19C22 19.5523 21.5523 20 21 20H3C2.44772 20 2 19.5523 2 19V5C2 4.44772 2.44772 4 3 4H21C21.5523 4 22 4.44772 22 5ZM12 7L17 10.5V13.5L12 17L7 13.5V10.5L12 7Z"></path></svg>
+                            </div>
+                            <span class="category-name">Presentations</span>
+                             <svg class="chevron-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                        </a>
+                    </li>
+                     <li>
+                        <a href="#" class="category-item">
+                            <div class="icon">
+                                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#10B981"><path d="M18.6667 19.4667L15.3333 16.8V7.2L18.6667 4.53333M8.66667 19.4667L12 16.8V7.2L8.66667 4.53333M4 6V18L7.33333 15.3333V8.66667L4 6Z"></path></svg>
+                            </div>
+                            <span class="category-name">Video</span>
+                             <svg class="chevron-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                        </a>
+                    </li>
+                     <li>
+                        <a href="#" class="category-item">
+                            <div class="icon">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 12C2.5 7.52166 2.5 5.28249 3.89124 3.89124C5.28249 2.5 7.52166 2.5 12 2.5C16.4783 2.5 18.7175 2.5 20.1088 3.89124C21.5 5.28249 21.5 7.52166 21.5 12C21.5 16.4783 21.5 18.7175 20.1088 20.1088C18.7175 21.5 16.4783 21.5 12 21.5C7.52166 21.5 5.28249 21.5 3.89124 20.1088C2.5 18.7175 2.5 16.4783 2.5 12Z" stroke="#3B82F6" stroke-width="2"></path><path d="M2.5 8H21.5" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                            </div>
+                            <span class="category-name">Websites</span>
+                             <svg class="chevron-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="category-item">
+                            <div class="icon">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 13.9142C3 14.8804 3 15.3635 3.20371 15.701C3.38521 16.0028 3.69349 16.2163 4.0413 16.2759C4.43795 16.3426 4.90827 16.1933 5.84892 15.9015L6.03541 15.8423C7.0378 15.5332 7.539 15.3787 7.91093 15.4831C8.28286 15.5875 8.58309 15.8443 8.74955 16.1923C8.91602 16.5403 8.91602 17.0205 8.91602 17.9808V18.1511C8.91602 19.1533 9.07062 19.6544 9.38012 20.0163C9.68962 20.3782 10.1501 20.5759 10.6413 20.5759H13.3587C13.8499 20.5759 14.3104 20.3782 14.6199 20.0163C14.9294 19.6544 15.084 19.1533 15.084 18.1511V17.9808C15.084 17.0205 15.084 16.5403 15.2505 16.1923C15.4169 15.8443 15.7171 15.5875 16.0891 15.4831C16.461 15.3787 16.9622 15.5332 17.9646 15.8423L18.1511 15.9015C19.0917 16.1933 19.5621 16.3426 19.9587 16.2759C20.3065 16.2163 20.6148 16.0028 20.7963 15.701C21 15.3635 21 14.8804 21 13.9142V10.0858C21 9.11964 21 8.63654 20.7963 8.29899C20.6148 7.99719 20.3065 7.78371 19.9587 7.72412C19.5621 7.65743 19.0917 7.80674 18.1511 8.09855L17.9646 8.15773C16.9622 8.46682 16.461 8.62137 16.0891 8.51693C15.7171 8.4125 15.4169 8.15573 15.2505 7.80772C15.084 7.45972 15.084 6.97951 15.084 6.01915V5.84892C15.084 4.84675 14.9294 4.34564 14.6199 3.98374C14.3104 3.62184 13.8499 3.42412 13.3587 3.42412H10.6413C10.1501 3.42412 9.68962 3.62184 9.38012 3.98374C9.07062 4.34564 8.91602 4.84675 8.91602 5.84892V6.01915C8.91602 6.97951 8.91602 7.45972 8.74955 7.80772C8.58309 8.15573 8.28286 8.4125 7.91093 8.51693C7.539 8.62137 7.0378 8.46682 6.03541 8.15773L5.84892 8.09855C4.90827 7.80674 4.43795 7.65743 4.0413 7.72412C3.69349 7.78371 3.38521 7.99719 3.20371 8.29899C3 8.63654 3 9.11964 3 10.0858V13.9142Z" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                            </div>
+                            <span class="category-name">Whiteboards</span>
+                             <svg class="chevron-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="category-item">
+                            <div class="icon">
+                                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 8V12M12 12V16M12 12H16M12 12H8M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                            </div>
+                            <span class="category-name">More</span>
+                             <svg class="chevron-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                        </a>
+                    </li>
+                </ul>
+            </section>
+        </div>
+    </div>
+
+</body>
+</html>

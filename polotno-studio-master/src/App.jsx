@@ -12,6 +12,10 @@ import { setTranslations } from 'polotno/config';
 
 // 导入新的UI组件
 import ImprovedApp from './components/ImprovedApp';
+import PerfectEditor from './components/PerfectEditor';
+import EnhancedEditor from './components/EnhancedEditor';
+import SafeEnhancedEditor from './components/SafeEnhancedEditor';
+import BeautifulEditor from './components/BeautifulEditor';
 
 import { loadFile } from './file';
 
@@ -38,6 +42,8 @@ import Topbar from './topbar/topbar';
 // import '@blueprintjs/core/lib/css/blueprint.css';
 // 导入新的AI Studio样式
 import './styles/ai-studio.css';
+import './styles/perfect-editor.css';
+import './styles/enhanced-editor.css';
 
 // load default translations
 setTranslations(en);
@@ -102,7 +108,7 @@ const useHeight = () => {
 const App = observer(({ store }) => {
   const project = useProject();
   const height = useHeight();
-  const [useNewUI, setUseNewUI] = React.useState(true); // 切换新旧UI的开关
+  const [uiMode, setUiMode] = React.useState('beautiful'); // 'beautiful', 'enhanced', 'perfect', 'improved', or 'classic'
   const [selectedTool, setSelectedTool] = React.useState('select');
 
   React.useEffect(() => {
@@ -145,8 +151,23 @@ const App = observer(({ store }) => {
     // TODO: 实现工具切换逻辑
   };
 
+  // 使用美化编辑器UI
+  if (uiMode === 'beautiful') {
+    return <BeautifulEditor store={store} />;
+  }
+
+  // 使用增强编辑器UI
+  if (uiMode === 'enhanced') {
+    return <SafeEnhancedEditor store={store} />;
+  }
+
+  // 使用完美编辑器UI
+  if (uiMode === 'perfect') {
+    return <PerfectEditor store={store} />;
+  }
+
   // 使用改进的新UI布局
-  if (useNewUI) {
+  if (uiMode === 'improved') {
     return <ImprovedApp store={store} />;
   }
 
@@ -167,19 +188,25 @@ const App = observer(({ store }) => {
         right: '10px', 
         zIndex: 1000 
       }}>
-        <button 
-          onClick={() => setUseNewUI(true)}
+        <select 
+          onChange={(e) => setUiMode(e.target.value)}
+          value={uiMode}
           style={{
             padding: '8px 16px',
             background: '#3B82F6',
             color: 'white',
             border: 'none',
             borderRadius: '8px',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            fontSize: '14px'
           }}
         >
-          Switch to New UI
-        </button>
+          <option value="beautiful">Beautiful Studio ✨</option>
+          <option value="enhanced">Enhanced Studio</option>
+          <option value="perfect">Perfect Editor</option>
+          <option value="improved">Improved UI</option>
+          <option value="classic">Classic UI</option>
+        </select>
       </div>
       <Topbar store={store} />
       <div style={{ height: 'calc(100% - 50px)' }}>

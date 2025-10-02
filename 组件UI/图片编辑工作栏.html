@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>画布上下文工具栏</title>
+    <style>
+        :root {
+            --app-bg: #F0F2F5; /* 您的主工作区背景色 */
+            --panel-bg: #FFFFFF;
+            --text-color: #1F2937;
+            --icon-color: #374151;
+            --border-color: #E5E7EB;
+            --hover-bg: #F3F4F6; /* 统一的悬停背景色 */
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --border-radius-lg: 16px; /* 大圆角 */
+            --border-radius-md: 8px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 模拟您的主工作界面背景 */
+        .workspace-background {
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--app-bg);
+            padding-top: 40px; /* 将工具栏从顶部推下来一点以便预览 */
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        /* --- 工具栏主容器 --- */
+        .canvas-toolbar {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%); /* 水平居中 */
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--panel-bg);
+            padding: 8px;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            user-select: none;
+            max-width: calc(100vw - 400px); /* 确保不会与右侧按钮重合 */
+            z-index: 10;
+        }
+
+        /* 工具组 */
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+        }
+
+        /* 工具按钮 */
+        .tool-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: none;
+            border: none;
+            border-radius: var(--border-radius-md);
+            color: var(--icon-color);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .tool-btn:hover {
+            background-color: var(--hover-bg);
+        }
+        .tool-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+        .tool-btn[disabled] {
+            color: #9CA3AF; /* 禁用状态的颜色 */
+            cursor: not-allowed;
+        }
+        .tool-btn[disabled]:hover {
+            background-color: transparent;
+        }
+
+        /* 分割线 */
+        .separator {
+            width: 1px;
+            height: 20px;
+            background-color: var(--border-color);
+            margin: 0 6px;
+        }
+
+        /* --- 导出按钮 --- */
+        .export-button {
+            position: absolute;
+            top: 40px;
+            right: 20px; /* 从右边缘开始，避免与工具栏重合 */
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 9px 16px;
+            border-radius: var(--border-radius-lg);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-color);
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            z-index: 11;
+            min-width: 100px; /* 确保按钮有最小宽度 */
+        }
+        .export-button:hover {
+            background-color: var(--hover-bg);
+        }
+        .export-button svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* --- 响应式设计 --- */
+        @media (max-width: 1024px) {
+            .canvas-toolbar {
+                max-width: calc(100vw - 200px);
+                gap: 6px;
+            }
+            .tool-btn {
+                width: 32px;
+                height: 32px;
+            }
+            .tool-btn svg {
+                width: 18px;
+                height: 18px;
+            }
+            .export-button {
+                right: 15px;
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .canvas-toolbar {
+                max-width: calc(100vw - 160px);
+                gap: 4px;
+                padding: 6px;
+            }
+            .tool-btn {
+                width: 30px;
+                height: 30px;
+            }
+            .tool-btn svg {
+                width: 16px;
+                height: 16px;
+            }
+            .separator {
+                margin: 0 4px;
+            }
+            .export-button {
+                right: 10px;
+                padding: 6px 10px;
+                font-size: 12px;
+                min-width: 80px;
+            }
+            .export-button svg {
+                width: 16px;
+                height: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .canvas-toolbar {
+                position: relative;
+                top: 20px;
+                left: auto;
+                transform: none;
+                margin: 0 auto;
+                max-width: calc(100vw - 40px);
+            }
+            .export-button {
+                position: relative;
+                top: 20px;
+                right: auto;
+                margin: 20px auto 0;
+                display: block;
+                width: fit-content;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="workspace-background">
+
+        <div class="canvas-toolbar">
+            <div class="toolbar-group">
+                <button class="tool-btn" title="对齐左边">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="21" x2="3" y2="21"></line><rect x="5" y="8" width="4" height="8"></rect><rect x="13" y="3" width="6" height="13"></rect></svg>
+                </button>
+                <button class="tool-btn" title="水平居中">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="21" x2="12" y2="3"></line><rect x="3" y="8" width="4" height="8"></rect><rect x="17" y="3" width="4" height="13"></rect></svg>
+                </button>
+                 <button class="tool-btn" title="对齐右边">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="21" x2="21" y2="3"></line><rect x="15" y="8" width="4" height="8"></rect><rect x="5" y="3" width="6" height="13"></rect></svg>
+                </button>
+            </div>
+            <div class="separator"></div>
+            <div class="toolbar-group">
+                <button class="tool-btn" title="图层顺序：上移一层">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 11 12 6 7 11"></polyline><polyline points="17 18 12 13 7 18"></polyline></svg>
+                </button>
+                <button class="tool-btn" title="图层顺序：下移一层">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 7 12 12 17 7"></polyline><polyline points="7 14 12 19 17 14"></polyline></svg>
+                </button>
+            </div>
+            <div class="separator"></div>
+            <div class="toolbar-group">
+                 <button class="tool-btn" title="水平翻转">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path><line x1="12" y1="3" x2="12" y2="21"></line><polyline points="16 7 20 12 16 17"></polyline></svg>
+                </button>
+                 <button class="tool-btn" title="垂直翻转">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path><line x1="3" y1="12" x2="21" y2="12"></line><polyline points="17 16 12 20 7 16"></polyline></svg>
+                </button>
+                 <button class="tool-btn" title="裁剪">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.13 1L6 16a2 2 0 0 0 2 2h15"></path><path d="M1 6.13L16 6a2 2 0 0 1 2 2v15"></path></svg>
+                </button>
+            </div>
+             <div class="separator"></div>
+             <div class="toolbar-group">
+                <button class="tool-btn" title="锁定">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                </button>
+                <button class="tool-btn" title="创建组件">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                </button>
+                <button class="tool-btn" disabled title="蒙版 (未激活)">
+                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z"></path><path d="M12 2v20"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <button class="export-button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Export</span>
+        </button>
+
+    </div>
+
+</body>
+</html>

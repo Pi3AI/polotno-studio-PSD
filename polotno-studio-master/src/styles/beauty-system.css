@@ -1,0 +1,779 @@
+/* 
+ * 全面美化设计系统
+ * 参考 Figma/Canva 的现代设计语言
+ */
+
+:root {
+  /* 核心颜色系统 */
+  --bg-primary: #F0F2F5;
+  --bg-secondary: #FFFFFF;
+  --bg-tertiary: #F9FAFB;
+  --bg-hover: #F3F4F6;
+  --bg-active: #E5E7EB;
+  
+  /* 品牌色 */
+  --brand-primary: #4F46E5;
+  --brand-secondary: #6366F1;
+  --brand-light: #E3E0FF;
+  --brand-dark: #3730A3;
+  
+  /* 文字颜色 */
+  --text-primary: #1F2937;
+  --text-secondary: #6B7280;
+  --text-tertiary: #9CA3AF;
+  --text-inverse: #FFFFFF;
+  
+  /* 边框和分割线 */
+  --border-primary: #E5E7EB;
+  --border-secondary: #D1D5DB;
+  --border-active: #4F46E5;
+  
+  /* 阴影系统 */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
+  --shadow-float: 0 8px 32px rgba(0, 0, 0, 0.15);
+  
+  /* 圆角系统 */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+  
+  /* 间距系统 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+  
+  /* 动画时长 */
+  --transition-fast: 150ms;
+  --transition-normal: 250ms;
+  --transition-slow: 350ms;
+  
+  /* 工具栏高度 */
+  --topbar-height: 56px;
+  --toolbar-height: 48px;
+  --sidebar-width: 72px;
+  --panel-width: 320px;
+}
+
+/* 全局样式重置 */
+* {
+  box-sizing: border-box;
+}
+
+/* 平滑滚动 */
+html {
+  scroll-behavior: smooth;
+}
+
+/* 主体背景 */
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==================== 智能浮动工具栏 ==================== */
+
+.floating-toolbar {
+  position: fixed;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-sm);
+  box-shadow: var(--shadow-float);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(10px) translateX(-50%);
+  transition: 
+    opacity var(--transition-normal) cubic-bezier(0.4, 0, 0.2, 1),
+    transform var(--transition-normal) cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  user-select: none;
+  max-width: calc(100vw - 40px);
+}
+
+.floating-toolbar.show {
+  opacity: 1;
+  transform: translateY(0) translateX(-50%);
+  pointer-events: auto;
+}
+
+/* 工具栏分组 */
+.floating-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 2px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+}
+
+/* 工具栏按钮 */
+.floating-tool-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+  position: relative;
+}
+
+.floating-tool-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  transform: scale(1.05);
+}
+
+.floating-tool-btn:active {
+  transform: scale(0.95);
+}
+
+.floating-tool-btn.active {
+  background: var(--brand-light);
+  color: var(--brand-primary);
+}
+
+.floating-tool-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* 工具栏分隔线 */
+.floating-toolbar-separator {
+  width: 1px;
+  height: 20px;
+  background: var(--border-secondary);
+  margin: 0 var(--spacing-xs);
+}
+
+/* 字体选择器 */
+.floating-font-select {
+  appearance: none;
+  padding: 0 var(--spacing-md);
+  height: 36px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+  min-width: 120px;
+}
+
+.floating-font-select:hover {
+  border-color: var(--border-active);
+}
+
+.floating-font-select:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* 字号控制 */
+.floating-font-size-controls {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  height: 36px;
+}
+
+.floating-font-size-input {
+  width: 50px;
+  text-align: center;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.floating-font-size-input:focus {
+  outline: none;
+  background: var(--bg-hover);
+}
+
+.floating-font-size-btn {
+  width: 28px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.floating-font-size-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* 颜色选择器 */
+.floating-color-picker {
+  position: relative;
+  width: 36px;
+  height: 36px;
+}
+
+.floating-color-swatch {
+  position: absolute;
+  bottom: 6px;
+  left: 8px;
+  right: 8px;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #FF0000, #FFFF00, #00FF00, #00FFFF, #0000FF, #FF00FF);
+}
+
+/* 导出按钮 */
+.floating-export-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--brand-primary);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+  margin-left: var(--spacing-md);
+}
+
+.floating-export-btn:hover {
+  background: var(--brand-secondary);
+  transform: scale(1.02);
+  box-shadow: var(--shadow-md);
+}
+
+.floating-export-btn:active {
+  transform: scale(0.98);
+}
+
+/* ==================== 左侧工具栏优化 ==================== */
+
+.left-toolbar {
+  position: fixed;
+  left: var(--spacing-lg);
+  top: calc(var(--topbar-height) + var(--spacing-xl));
+  bottom: var(--spacing-xl);
+  width: var(--sidebar-width);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  z-index: 100;
+}
+
+.tool-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
+}
+
+.tool-group-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0 var(--spacing-xs);
+  margin-bottom: var(--spacing-xs);
+}
+
+.tool-btn {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition-fast) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tool-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  transform: scale(1.08);
+  box-shadow: var(--shadow-sm);
+}
+
+.tool-btn:active {
+  transform: scale(0.95);
+}
+
+.tool-btn.active {
+  background: var(--brand-primary);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-md);
+}
+
+.tool-btn.active:hover {
+  background: var(--brand-secondary);
+}
+
+.tool-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.tool-tooltip {
+  position: absolute;
+  left: calc(100% + var(--spacing-sm));
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--text-primary);
+  color: var(--text-inverse);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast) ease;
+}
+
+.tool-btn:hover .tool-tooltip {
+  opacity: 1;
+}
+
+/* ==================== 顶部工具栏美化 ==================== */
+
+.top-toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--topbar-height);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacing-xl);
+  z-index: 1000;
+}
+
+.top-toolbar-left,
+.top-toolbar-center,
+.top-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.brand-logo {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--brand-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.nav-btn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+}
+
+.nav-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.nav-btn.active {
+  background: var(--brand-light);
+  color: var(--brand-primary);
+}
+
+/* ==================== 画布区域美化 ==================== */
+
+.canvas-container {
+  position: fixed;
+  top: var(--topbar-height);
+  left: calc(var(--sidebar-width) + var(--spacing-xl) * 2);
+  right: calc(var(--panel-width) + var(--spacing-xl));
+  bottom: var(--spacing-xl);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-xl);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.canvas-workspace {
+  width: calc(100% - var(--spacing-2xl) * 2);
+  height: calc(100% - var(--spacing-2xl) * 2);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.canvas-zoom-controls {
+  position: absolute;
+  bottom: var(--spacing-lg);
+  right: var(--spacing-lg);
+  display: flex;
+  gap: var(--spacing-sm);
+  background: var(--bg-secondary);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.zoom-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+}
+
+.zoom-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.zoom-value {
+  min-width: 60px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==================== 右侧图层面板美化 ==================== */
+
+.layers-panel {
+  position: fixed;
+  right: var(--spacing-lg);
+  top: calc(var(--topbar-height) + var(--spacing-xl));
+  bottom: var(--spacing-xl);
+  width: var(--panel-width);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.layers-header {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.layers-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.layers-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.layer-action-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+}
+
+.layer-action-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.layers-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-sm);
+}
+
+.layer-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-xs);
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+}
+
+.layer-item:hover {
+  background: var(--bg-hover);
+}
+
+.layer-item.selected {
+  background: var(--brand-light);
+  box-shadow: inset 0 0 0 2px var(--brand-primary);
+}
+
+.layer-thumbnail {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.layer-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.layer-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.layer-type {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.layer-visibility {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+  flex-shrink: 0;
+}
+
+.layer-visibility:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* ==================== 微动画效果 ==================== */
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(79, 70, 229, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideInUp var(--transition-normal) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-slide-down {
+  animation: slideInDown var(--transition-normal) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-fade-in {
+  animation: fadeIn var(--transition-normal) ease;
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+/* ==================== 响应式设计 ==================== */
+
+@media (max-width: 1440px) {
+  :root {
+    --panel-width: 280px;
+  }
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --sidebar-width: 60px;
+    --panel-width: 240px;
+  }
+  
+  .tool-btn {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .tool-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .floating-toolbar {
+    max-width: calc(100vw - 20px);
+  }
+}
+
+@media (max-width: 768px) {
+  .left-toolbar {
+    bottom: auto;
+    height: auto;
+    flex-direction: row;
+    width: calc(100vw - var(--spacing-lg) * 2);
+    overflow-x: auto;
+  }
+  
+  .layers-panel {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    top: auto;
+    width: 100%;
+    height: 200px;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+  
+  .canvas-container {
+    left: var(--spacing-lg);
+    right: var(--spacing-lg);
+    bottom: 220px;
+  }
+  
+  .floating-toolbar {
+    position: fixed;
+    bottom: 240px;
+    top: auto;
+  }
+}
+
+/* ==================== 性能优化 ==================== */
+
+.use-gpu {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 减少重绘 */
+.static-position {
+  position: relative;
+  contain: layout style paint;
+}
