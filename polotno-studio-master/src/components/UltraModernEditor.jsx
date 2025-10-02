@@ -7,10 +7,15 @@ import { Workspace } from 'polotno/canvas/workspace';
 import { SidePanel, DEFAULT_SECTIONS } from 'polotno/side-panel';
 import { PagesTimeline } from 'polotno/pages-timeline';
 
-// 导入超现代样式
-import '../styles/ultra-modern.css';
+// 导入智能浮动工具栏
+import SmartFloatingToolbar from './SmartFloatingToolbar';
 
-// 浮动上下文工具栏组件
+// 导入样式
+import '../styles/ultra-modern.css';
+import '../styles/smart-floating-toolbar.css';
+
+// 移除旧的浮动工具栏，使用新的SmartFloatingToolbar
+/*
 const ContextToolbar = observer(({ element, store, position }) => {
   const [visible, setVisible] = useState(false);
   const toolbarRef = useRef(null);
@@ -152,6 +157,7 @@ const ContextToolbar = observer(({ element, store, position }) => {
     </div>
   );
 });
+*/
 
 // 超现代编辑器主组件
 const UltraModernEditor = observer(({ store }) => {
@@ -514,12 +520,8 @@ const UltraModernEditor = observer(({ store }) => {
         </div>
       </aside>
       
-      {/* 浮动上下文工具栏 */}
-      <ContextToolbar
-        element={selectedElement}
-        store={store}
-        position={elementPosition}
-      />
+      {/* 智能浮动工具栏 - 替代固定的顶部工具栏 */}
+      <SmartFloatingToolbar store={store} />
     </div>
   );
 });
