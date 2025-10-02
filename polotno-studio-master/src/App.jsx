@@ -10,6 +10,9 @@ import { Workspace } from 'polotno/canvas/workspace';
 import { PagesTimeline } from 'polotno/pages-timeline';
 import { setTranslations } from 'polotno/config';
 
+// 导入新的UI组件
+import ImprovedApp from './components/ImprovedApp';
+
 import { loadFile } from './file';
 
 import { QrSection } from './sections/qr-section';
@@ -33,6 +36,8 @@ import zhCh from './translations/zh-ch';
 import Topbar from './topbar/topbar';
 
 // import '@blueprintjs/core/lib/css/blueprint.css';
+// 导入新的AI Studio样式
+import './styles/ai-studio.css';
 
 // load default translations
 setTranslations(en);
@@ -97,6 +102,8 @@ const useHeight = () => {
 const App = observer(({ store }) => {
   const project = useProject();
   const height = useHeight();
+  const [useNewUI, setUseNewUI] = React.useState(true); // 切换新旧UI的开关
+  const [selectedTool, setSelectedTool] = React.useState('select');
 
   React.useEffect(() => {
     if (project.language.startsWith('fr')) {
@@ -133,6 +140,17 @@ const App = observer(({ store }) => {
     }
   };
 
+  const handleToolSelect = (toolId) => {
+    setSelectedTool(toolId);
+    // TODO: 实现工具切换逻辑
+  };
+
+  // 使用改进的新UI布局
+  if (useNewUI) {
+    return <ImprovedApp store={store} />;
+  }
+
+  // 保留原有UI布局作为备选
   return (
     <div
       style={{
@@ -143,6 +161,26 @@ const App = observer(({ store }) => {
       }}
       onDrop={handleDrop}
     >
+      <div style={{ 
+        position: 'absolute', 
+        top: '10px', 
+        right: '10px', 
+        zIndex: 1000 
+      }}>
+        <button 
+          onClick={() => setUseNewUI(true)}
+          style={{
+            padding: '8px 16px',
+            background: '#3B82F6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer'
+          }}
+        >
+          Switch to New UI
+        </button>
+      </div>
       <Topbar store={store} />
       <div style={{ height: 'calc(100% - 50px)' }}>
         <PolotnoContainer className="polotno-app-container">
