@@ -16,6 +16,7 @@ import PerfectEditor from './components/PerfectEditor';
 import EnhancedEditor from './components/EnhancedEditor';
 import SafeEnhancedEditor from './components/SafeEnhancedEditor';
 import BeautifulEditor from './components/BeautifulEditor';
+import UltraModernEditor from './components/UltraModernEditor';
 
 import { loadFile } from './file';
 
@@ -108,7 +109,7 @@ const useHeight = () => {
 const App = observer(({ store }) => {
   const project = useProject();
   const height = useHeight();
-  const [uiMode, setUiMode] = React.useState('beautiful'); // 'beautiful', 'enhanced', 'perfect', 'improved', or 'classic'
+  const [uiMode, setUiMode] = React.useState('ultra'); // 'ultra', 'beautiful', 'enhanced', 'perfect', 'improved', or 'classic'
   const [selectedTool, setSelectedTool] = React.useState('select');
 
   React.useEffect(() => {
@@ -150,6 +151,11 @@ const App = observer(({ store }) => {
     setSelectedTool(toolId);
     // TODO: 实现工具切换逻辑
   };
+
+  // 使用超现代编辑器UI
+  if (uiMode === 'ultra') {
+    return <UltraModernEditor store={store} />;
+  }
 
   // 使用美化编辑器UI
   if (uiMode === 'beautiful') {
@@ -201,6 +207,7 @@ const App = observer(({ store }) => {
             fontSize: '14px'
           }}
         >
+          <option value="ultra">Ultra Modern 🌟</option>
           <option value="beautiful">Beautiful Studio ✨</option>
           <option value="enhanced">Enhanced Studio</option>
           <option value="perfect">Perfect Editor</option>
