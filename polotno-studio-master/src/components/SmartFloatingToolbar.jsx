@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
+import { reaction } from 'mobx';
 
 // 智能浮动工具栏组件
 const SmartFloatingToolbar = observer(({ store }) => {
@@ -427,8 +428,43 @@ const SmartFloatingToolbar = observer(({ store }) => {
       }
     };
 
-    // 添加优化的事件监听器
-    store.on('change', handleStoreChange);
+    // 使用MobX reaction监听store变化
+    const reactionDisposer = reaction(
+      () => {
+        // 监听选中元素的变化
+        const selected = store.selectedElements?.[0];
+        return {
+          selectedId: selected?.id,
+          selectedType: selected?.type,
+          x: selected?.x,
+          y: selected?.y,
+          width: selected?.width,
+          height: selected?.height,
+          scaleX: selected?.scaleX,
+          scaleY: selected?.scaleY,
+          zoom: store.zoom
+        };
+      },
+      (current, previous) => {
+        // 当监听的值发生变化时执行
+        if (current.selectedId !== previous?.selectedId) {
+          updateToolbar();
+        } else if (current.selectedId && (
+          current.x !== previous?.x ||
+          current.y !== previous?.y ||
+          current.width !== previous?.width ||
+          current.height !== previous?.height ||
+          current.scaleX !== previous?.scaleX ||
+          current.scaleY !== previous?.scaleY ||
+          current.zoom !== previous?.zoom
+        )) {
+          handleElementChange();
+        }
+      },
+      { fireImmediately: true }
+    );
+
+    // 添加DOM事件监听器
     window.addEventListener('resize', handleWindowResize);
     window.addEventListener('scroll', handleCanvasScroll, { passive: true, capture: true });
     
@@ -441,7 +477,7 @@ const SmartFloatingToolbar = observer(({ store }) => {
     document.addEventListener('keydown', handleElementTransform);
 
     // 监听Polotno特定事件
-    if (store.onZoomChange) {
+    if (store && typeof store.onZoomChange === 'function') {
       store.onZoomChange(handleZoomChange);
     }
 
@@ -449,17 +485,26 @@ const SmartFloatingToolbar = observer(({ store }) => {
     updateToolbar();
 
     return () => {
-      // 清理所有事件监听器和定时器
-      store.off('change', handleStoreChange);
+      // 清理MobX reaction
+      if (reactionDisposer) {
+        reactionDisposer();
+      }
+      
+      // 清理DOM事件监听器
       window.removeEventListener('resize', handleWindowResize);
-      window.removeEventListener('scroll', handleCanvasScroll, { passive: true, capture: true });
+      window.removeEventListener('scroll', handleCanvasScroll);
       document.removeEventListener('mousedown', handleCanvasInteraction);
-      document.removeEventListener('mousemove', handleElementTransform, { passive: true });
-      document.removeEventListener('mouseup', handleElementTransform, { passive: true });
+      document.removeEventListener('mousemove', handleElementTransform);
+      document.removeEventListener('mouseup', handleElementTransform);
       document.removeEventListener('keydown', handleElementTransform);
 
-      if (store.offZoomChange) {
-        store.offZoomChange(handleZoomChange);
+      // 清理Polotno事件监听器
+      if (store && typeof store.offZoomChange === 'function') {
+        try {
+          store.offZoomChange(handleZoomChange);
+        } catch (error) {
+          console.warn('Polotno事件监听器清理失败:', error);
+        }
       }
 
       // 清理定时器和动画帧
