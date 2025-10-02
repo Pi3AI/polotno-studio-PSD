@@ -13,7 +13,7 @@ const SmartFloatingToolbar = observer(({ store }) => {
   // 监听元素选择变化
   useEffect(() => {
     const updateToolbar = () => {
-      const selected = store.selectedElements[0];
+      const selected = store.selectedElements?.[0];
       
       if (selected) {
         setSelectedElement(selected);

@@ -58,7 +58,7 @@
   --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   
   /* 布局 */
-  --header-height: 64px;
+  --header-height: 48px; /* 缩小顶部高度 */
   --sidebar-width: 64px;
   --panel-width: 340px;
   --radius-sm: 8px;
@@ -105,14 +105,14 @@ body::before {
   66% { transform: translate(20px, -10px) scale(0.95); }
 }
 
-/* ==================== 顶部导航栏 ==================== */
+/* ==================== 简化顶部栏 ==================== */
 
-.ultra-header {
+.ultra-header-minimal {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: var(--header-height);
+  height: 48px; /* 更小的高度 */
   background: var(--bg-glass);
   backdrop-filter: blur(var(--blur-lg));
   border-bottom: 1px solid var(--border-glass);
@@ -121,6 +121,10 @@ body::before {
   justify-content: space-between;
   padding: 0 24px;
   z-index: 1000;
+}
+
+.ultra-header {
+  display: none; /* 隐藏原始header */
 }
 
 .ultra-header::before {

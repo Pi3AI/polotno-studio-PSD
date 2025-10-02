@@ -253,21 +253,12 @@ const UltraModernEditor = observer(({ store }) => {
   
   return (
     <div className="ultra-modern-editor">
-      {/* 顶部导航栏 */}
-      <header className="ultra-header">
+      {/* 简化的顶部栏 - 只保留品牌和导出按钮 */}
+      <header className="ultra-header-minimal">
         <div className="header-brand">
           <div className="header-brand-icon">✨</div>
           <span>Ultra Design</span>
         </div>
-        
-        <nav className="header-nav">
-          <button className="header-nav-item">File</button>
-          <button className="header-nav-item">Edit</button>
-          <button className="header-nav-item active">Design</button>
-          <button className="header-nav-item">View</button>
-          <button className="header-nav-item">Tools</button>
-          <button className="header-nav-item">Help</button>
-        </nav>
         
         <div className="header-actions">
           <button className="btn-glass">
