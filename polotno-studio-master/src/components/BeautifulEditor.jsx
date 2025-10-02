@@ -475,7 +475,7 @@ const BeautifulEditor = observer(({ store }) => {
           </div>
         </div>
         
-        <div className="top-toolbar-center">
+        {/* <div className="top-toolbar-center">
           <button className="nav-btn">File</button>
           <button className="nav-btn">Edit</button>
           <button className="nav-btn">View</button>
@@ -484,7 +484,7 @@ const BeautifulEditor = observer(({ store }) => {
           <button className="nav-btn">Tools</button>
           <button className="nav-btn">Help</button>
         </div>
-        
+         */}
         <div className="top-toolbar-right">
           <button className="nav-btn">Share</button>
           <button className="nav-btn active">Export</button>
