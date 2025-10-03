@@ -1,0 +1,396 @@
+/* 下拉式下载菜单样式 - 白色主题 */
+.download-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.download-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e1e5e9;
+  border-radius: 16px;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+  z-index: 2000;
+  animation: dropdownSlideIn 0.2s ease-out;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 添加白色主题的光晕效果 */
+.download-dropdown-panel::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: linear-gradient(135deg, 
+    rgba(102, 126, 234, 0.1) 0%, 
+    rgba(244, 114, 182, 0.05) 50%,
+    rgba(16, 185, 129, 0.05) 100%);
+  border-radius: 16px;
+  z-index: -1;
+  opacity: 0.8;
+}
+
+.dropdown-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #f0f4f8;
+  background: linear-gradient(135deg, 
+    rgba(102, 126, 234, 0.02) 0%, 
+    rgba(244, 114, 182, 0.01) 100%);
+}
+
+.dropdown-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2d3748;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dropdown-content {
+  padding: 20px 24px;
+  max-height: 50vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 4px;
+}
+
+.format-select select {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  color: #2d3748;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.format-select select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background: #ffffff;
+}
+
+.format-select select:hover {
+  border-color: #cbd5e0;
+  background: #ffffff;
+}
+
+.quality-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: #f7fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.quality-info, .size-info {
+  font-size: 13px;
+  color: #718096;
+  text-align: center;
+  padding: 8px 12px;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-weight: 500;
+}
+
+.fps-controls {
+  margin-top: 12px;
+}
+
+.page-size-controls {
+  margin-top: 12px;
+  padding: 16px;
+  background: #f7fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.info-section {
+  padding: 16px;
+  background: linear-gradient(135deg, 
+    rgba(102, 126, 234, 0.05) 0%, 
+    rgba(102, 126, 234, 0.02) 100%);
+  border: 1px solid rgba(102, 126, 234, 0.15);
+  border-radius: 12px;
+}
+
+.info-text {
+  font-size: 14px;
+  color: #4a5568;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.info-text a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.info-text a:hover {
+  text-decoration: underline;
+}
+
+.checkbox-section {
+  padding: 16px;
+  background: #f7fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.progress-section {
+  margin-top: 12px;
+}
+
+.dropdown-footer {
+  padding: 16px 24px 24px;
+  border-top: 1px solid #f0f4f8;
+  background: linear-gradient(135deg, 
+    rgba(102, 126, 234, 0.01) 0%, 
+    rgba(244, 114, 182, 0.005) 100%);
+}
+
+.download-btn {
+  width: 100%;
+  height: 44px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.download-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.2), 
+    transparent);
+  transition: left 0.4s;
+}
+
+.download-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.download-btn:hover::before {
+  left: 100%;
+}
+
+.download-btn:active {
+  transform: translateY(0);
+}
+
+.download-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.download-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Blueprint.js组件白色主题覆盖 */
+.download-dropdown-panel .bp5-slider {
+  margin: 8px 0;
+}
+
+.download-dropdown-panel .bp5-slider-track {
+  background: #e2e8f0;
+  border-radius: 8px;
+}
+
+.download-dropdown-panel .bp5-slider-progress {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+}
+
+.download-dropdown-panel .bp5-slider-handle {
+  background: #667eea;
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  width: 20px;
+  height: 20px;
+}
+
+.download-dropdown-panel .bp5-slider-handle:hover {
+  background: #5a67d8;
+  transform: scale(1.1);
+}
+
+.download-dropdown-panel .bp5-checkbox {
+  color: #2d3748;
+  font-weight: 500;
+}
+
+.download-dropdown-panel .bp5-checkbox .bp5-control-indicator {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+.download-dropdown-panel .bp5-checkbox .bp5-control-indicator:hover {
+  border-color: #cbd5e0;
+}
+
+.download-dropdown-panel .bp5-checkbox input:checked ~ .bp5-control-indicator {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+}
+
+.download-dropdown-panel .bp5-checkbox input:focus ~ .bp5-control-indicator {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.download-dropdown-panel .bp5-progress-bar {
+  background: #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.download-dropdown-panel .bp5-progress-meter {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* 滚动条样式 */
+.dropdown-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-content::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 3px;
+}
+
+.dropdown-content::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.dropdown-content::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* 确保下拉菜单内容与按钮宽度严格一致 */
+.download-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.download-dropdown-container .download-trigger-btn {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+}
+
+/* 确保下拉菜单的所有内部元素与容器宽度一致 */
+.download-dropdown-panel .form-section,
+.download-dropdown-panel .dropdown-content,
+.download-dropdown-panel .dropdown-header,
+.download-dropdown-panel .dropdown-footer {
+  box-sizing: border-box;
+}
+
+.download-dropdown-panel .format-select,
+.download-dropdown-panel .download-btn {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .download-dropdown-panel {
+    min-width: 280px;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .dropdown-header {
+    padding: 16px 20px 12px;
+  }
+  
+  .dropdown-header h3 {
+    font-size: 16px;
+  }
+  
+  .dropdown-content {
+    padding: 16px 20px;
+    gap: 16px;
+  }
+  
+  .dropdown-footer {
+    padding: 12px 20px 20px;
+  }
+}
+
+/* 为小屏幕优化位置 */
+@media (max-width: 768px) {
+  .download-dropdown-panel {
+    right: -20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .download-dropdown-panel {
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 280px;
+  }
+}

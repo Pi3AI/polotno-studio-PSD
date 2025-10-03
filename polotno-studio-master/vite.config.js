@@ -15,6 +15,11 @@ export default defineConfig({
 
   server: {
     port: 3002,
+    host: '0.0.0.0', // 允许外部访问
+    hmr: {
+      port: 3002,
+      host: '0.0.0.0',
+    },
   },
 
   build: {

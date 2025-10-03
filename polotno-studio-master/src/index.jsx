@@ -8,6 +8,7 @@ import { createProject, ProjectContext } from './project';
 import '@blueprintjs/core/lib/css/blueprint.css';
 import './index.css';
 import './styles/psd-precision.css';
+import './styles/psd-image-quality.css';
 import App from './App';
 import './logger';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -33,9 +34,16 @@ unstable_setAnimationsEnabled(true);
 const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
 const store = createStore({ 
-  key: 'nFA5H9elEytDyPyvKL7T',
+  key: 'JtaT2TQRl_EqM_V0SXL0',
   // 在开发环境中禁用域名验证
-  ...(isDevelopment && { disableDomainCheck: true })
+  ...(isDevelopment && { disableDomainCheck: true }),
+  // 启用高质量图像渲染
+  pixelRatio: Math.max(window.devicePixelRatio || 1, 2),
+  // 图像质量优化
+  imageQuality: 1.0,
+  // Canvas优化设置
+  imageSmoothingEnabled: true,
+  imageSmoothingQuality: 'high'
 });
 window.store = store;
 store.addPage();
@@ -45,11 +53,11 @@ window.project = project;
 
 // 初始化完整的PSD精确系统
 setTimeout(() => {
-  // 1. 初始化精确渲染器
+  // 1. 初始化精确渲染器 - 浮动工具栏问题已修复，重新启用
   const precisionRenderer = initializePrecisionRenderer(store);
   console.log('✅ 精确渲染器已初始化');
   
-  // 2. 初始化Polotno文本渲染增强器
+  // 2. 初始化Polotno文本渲染增强器 - 浮动工具栏问题已修复，重新启用
   const textRenderer = initializePolotnoTextRenderer(store);
   console.log('✅ Polotno文本渲染增强器已初始化');
   

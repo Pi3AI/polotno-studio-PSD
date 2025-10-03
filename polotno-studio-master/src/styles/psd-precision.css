@@ -39,11 +39,23 @@
   word-wrap: break-word;
   overflow-wrap: break-word;
   
-  /* 禁用文本选择时的优化干扰 */
+  /* 禁用文本选择时的优化干扰 - 但允许在编辑状态下选择 */
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+}
+
+/* 为文本编辑状态允许文本选择 */
+.psd-precise-text:focus,
+.psd-precise-text.editing,
+.konvajs-content textarea,
+.konvajs-content input[type="text"],
+.polotno-text-editing .psd-precise-text {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
 }
 
 /* PSD字体大小映射表 */

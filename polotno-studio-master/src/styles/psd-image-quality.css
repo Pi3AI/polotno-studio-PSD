@@ -1,0 +1,116 @@
+/* PSD图像质量优化样式 */
+
+/* 全局图像渲染优化 */
+.polotno-workspace-container img,
+.polotno-workspace-container canvas,
+.polotno-stage img,
+.polotno-stage canvas {
+  /* 高质量图像渲染 */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: high-quality;
+  
+  /* 防止图像模糊 */
+  -webkit-backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  
+  /* 高DPI显示优化 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* 确保图像以原始分辨率显示 */
+  max-width: none;
+  width: auto;
+  height: auto;
+}
+
+/* 专门针对PSD导入的图像 */
+.polotno-workspace-container img[src*="data:image/png"],
+.polotno-stage img[src*="data:image/png"] {
+  /* 最高质量设置 */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: optimize-contrast;
+  image-rendering: crisp-edges;
+  
+  /* 防止浏览器压缩 */
+  image-resolution: from-image;
+  object-fit: contain;
+  
+  /* 启用硬件加速 */
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Konva Stage优化 */
+.konvajs-content canvas {
+  /* 高质量Canvas渲染 */
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+  
+  /* 防止模糊 */
+  -webkit-font-smoothing: antialiased;
+  font-smooth: always;
+  
+  /* 确保Canvas以正确的DPI渲染 */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* 针对增强图像的特殊样式 */
+img[data-enhanced="true"],
+canvas[data-enhanced="true"] {
+  /* 最高质量渲染 */
+  image-rendering: high-quality;
+  image-rendering: -webkit-optimize-contrast;
+  
+  /* 锐化效果 */
+  filter: contrast(1.05) saturate(1.1);
+  
+  /* 防止任何形式的降质 */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* 高DPI设备专用优化 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .polotno-workspace-container img,
+  .polotno-stage img,
+  .konvajs-content canvas {
+    /* 高DPI下的优化 */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: optimize-quality;
+    
+    /* 确保高分辨率显示 */
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* 缩放时保持清晰度 */
+.polotno-workspace-container[style*="transform"],
+.polotno-stage[style*="transform"] {
+  img, canvas {
+    /* 缩放时保持清晰 */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    
+    /* 防止缩放模糊 */
+    -webkit-transform-origin: 0 0;
+    transform-origin: 0 0;
+  }
+}
+
+/* 文本渲染优化（针对光栅化文本） */
+.polotno-workspace-container img[data-from-text="true"] {
+  /* 文本图像特殊处理 */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  
+  /* 确保文本清晰 */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}

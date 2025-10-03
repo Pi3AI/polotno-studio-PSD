@@ -1,16 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import {
   Button,
-  Position,
-  Menu,
   HTMLSelect,
   Slider,
-  Popover,
   ProgressBar,
   Checkbox,
 } from '@blueprintjs/core';
-// 使用字串 IconName
 import JSZip from 'jszip';
 import { downloadFile } from 'polotno/utils/download';
 import * as unit from 'polotno/utils/unit';
@@ -19,6 +15,7 @@ import { jsonToPPTX } from 'polotno/utils/to-pptx';
 import { getKey } from 'polotno/utils/validate-key';
 import { exportToPSD, exportAllPagesToPSDZip } from '../psd-export';
 
+// 保存视频的函数
 const saveAsVideo = async ({ store, pixelRatio, fps, onProgress }) => {
   const json = store.toJSON();
   const req = await fetch(
@@ -53,7 +50,7 @@ const saveAsVideo = async ({ store, pixelRatio, fps, onProgress }) => {
   }
 };
 
-// Cloud render for vector PDF export
+// 保存矢量PDF的函数
 const saveAsVectorPDF = async ({ store, pixelRatio, onProgress }) => {
   const json = store.toJSON();
   const req = await fetch(
@@ -93,16 +90,15 @@ const saveAsVectorPDF = async ({ store, pixelRatio, onProgress }) => {
   }
 };
 
-export const DownloadButton = observer(({ store }) => {
-  const [saving, setSaving] = React.useState(false);
-  const [quality, setQuality] = React.useState(1);
-  const [pageSizeModifier, setPageSizeModifier] = React.useState(1);
-  const [fps, setFPS] = React.useState(10);
-  const [type, setType] = React.useState('png');
-  const [progress, setProgress] = React.useState(0);
-  const [progressStatus, setProgressStatus] = React.useState('scheduled');
-  // flag for vector pdf
-  const [vectorPDF, setVectorPDF] = React.useState(false);
+export const DownloadModal = observer(({ store, isOpen, onClose }) => {
+  const [saving, setSaving] = useState(false);
+  const [quality, setQuality] = useState(1);
+  const [pageSizeModifier, setPageSizeModifier] = useState(1);
+  const [fps, setFPS] = useState(10);
+  const [type, setType] = useState('png');
+  const [progress, setProgress] = useState(0);
+  const [progressStatus, setProgressStatus] = useState('scheduled');
+  const [vectorPDF, setVectorPDF] = useState(false);
 
   const getName = () => {
     const texts = [];
@@ -165,7 +161,6 @@ export const DownloadButton = observer(({ store }) => {
         });
       } else if (type === 'pptx') {
         await jsonToPPTX({ json: store.toJSON() });
-        // downloadFile(pptx, 'polotno.pptx');
       } else if (type === 'mp4') {
         setProgressStatus('scheduled');
         await saveAsVideo({
@@ -180,16 +175,13 @@ export const DownloadButton = observer(({ store }) => {
         setProgress(0);
       } else if (type === 'psd') {
         if (store.pages.length > 1) {
-          // 导出所有页面为PSD压缩包
           await exportAllPagesToPSDZip(store, getName());
         } else {
-          // 导出当前页面为PSD
           await exportToPSD(store, getName() + '.psd');
         }
       } else {
         if (store.pages.length < 3) {
           store.pages.forEach((page, index) => {
-            // do not add index if we have just one page
             const indexString = store.pages.length > 1 ? '-' + (index + 1) : '';
             store.saveAsImage({
               pageId: page.id,
@@ -219,12 +211,15 @@ export const DownloadButton = observer(({ store }) => {
 
           const content = await zip.generateAsync({ type: 'base64' });
           const result = 'data:application/zip;base64,' + content;
-          console.log(content);
           downloadFile(result, getName() + '.zip');
         }
       }
+
+      // 下载完成后自动关闭模态框
+      setTimeout(() => {
+        onClose();
+      }, 1000);
     } catch (e) {
-      // throw into global error handler for reporting
       setTimeout(() => {
         throw e;
       });
@@ -236,43 +231,57 @@ export const DownloadButton = observer(({ store }) => {
   const isRasterFormat = type === 'jpeg' || type === 'png';
   const maxQuality = type === 'mp4' ? 1 : 300 / 72;
 
+  if (!isOpen) return null;
+
   return (
-    <Popover
-      content={
-        <Menu>
-          <p>File type</p>
-          <HTMLSelect
-            fill
-            onChange={(e) => {
-              setType(e.target.value);
-              setQuality(1);
-              if (e.target.value !== 'pdf') {
-                setVectorPDF(false);
-              }
-            }}
-            value={type}
-            style={{}}
-          >
-            <option value="jpeg">JPEG</option>
-            <option value="png">PNG</option>
-            <option value="pdf">PDF</option>
-            <option value="html">HTML</option>
-            <option value="svg">SVG</option>
-            <option value="pptx">PPTX</option>
-            <option value="json">JSON</option>
-            <option value="gif">GIF</option>
-            <option value="mp4">MP4 Video (Beta)</option>
-            <option value="psd">PSD (Photoshop)</option>
-          </HTMLSelect>
+    <div className="download-modal-overlay" onClick={onClose}>
+      <div className="download-modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="download-modal-header">
+          <h2>Export Your Design</h2>
+          <button className="modal-close-btn" onClick={onClose}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div className="download-modal-body">
+          <div className="form-section">
+            <label className="form-label">File Format</label>
+            <HTMLSelect
+              fill
+              onChange={(e) => {
+                setType(e.target.value);
+                setQuality(1);
+                if (e.target.value !== 'pdf') {
+                  setVectorPDF(false);
+                }
+              }}
+              value={type}
+              className="format-select"
+            >
+              <option value="jpeg">JPEG Image</option>
+              <option value="png">PNG Image</option>
+              <option value="pdf">PDF Document</option>
+              <option value="html">HTML File</option>
+              <option value="svg">SVG Vector</option>
+              <option value="pptx">PowerPoint</option>
+              <option value="json">JSON Data</option>
+              <option value="gif">GIF Animation</option>
+              <option value="mp4">MP4 Video (Beta)</option>
+              <option value="psd">PSD (Photoshop)</option>
+            </HTMLSelect>
+          </div>
 
           {type !== 'json' &&
             type !== 'html' &&
             type !== 'svg' &&
             type !== 'pptx' &&
             type !== 'psd' && (
-              <>
-                <p style={{ paddingTop: '10px' }}>Quality</p>
-                <div style={{ padding: '10px' }}>
+              <div className="form-section">
+                <label className="form-label">Quality Settings</label>
+                <div className="quality-controls">
                   <Slider
                     value={quality}
                     labelRenderer={false}
@@ -285,137 +294,127 @@ export const DownloadButton = observer(({ store }) => {
                     showTrackFill={false}
                   />
                   {type === 'pdf' && (
-                    <div style={{ paddingTop: '10px' }}>
+                    <div className="quality-info">
                       DPI: {Math.round(store.dpi * quality)}
                     </div>
                   )}
                   {type !== 'pdf' && (
-                    <div style={{ paddingTop: '10px' }}>
+                    <div className="quality-info">
                       {Math.round(store.activePage.computedWidth * quality)} x{' '}
                       {Math.round(store.activePage.computedHeight * quality)} px
                     </div>
                   )}
                   {type === 'gif' && (
-                    <>
-                      <li className="bp5-menu-header">
-                        <h6 className="bp5-heading">FPS</h6>
-                      </li>
-                      <div style={{ padding: '10px' }}>
-                        <Slider
-                          value={fps}
-                          // labelRenderer={false}
-                          labelStepSize={5}
-                          onChange={(fps) => {
-                            setFPS(fps);
-                          }}
-                          stepSize={1}
-                          min={5}
-                          max={30}
-                          showTrackFill={false}
-                        />
-                      </div>
-                    </>
+                    <div className="fps-controls">
+                      <label className="form-label">Animation Speed (FPS)</label>
+                      <Slider
+                        value={fps}
+                        labelStepSize={5}
+                        onChange={(fps) => {
+                          setFPS(fps);
+                        }}
+                        stepSize={1}
+                        min={5}
+                        max={30}
+                        showTrackFill={false}
+                      />
+                    </div>
                   )}
                 </div>
                 {type === 'pdf' && (
-                  <>
-                    <li className="bp5-menu-header">
-                      <h6 className="bp5-heading">Page Size</h6>
-                    </li>
-                    <div style={{ padding: '10px' }}>
-                      <Slider
-                        value={pageSizeModifier}
-                        labelRenderer={false}
-                        onChange={(pageSizeModifier) => {
-                          setPageSizeModifier(pageSizeModifier);
-                        }}
-                        stepSize={0.2}
-                        min={0.2}
-                        max={3}
-                        showTrackFill={false}
-                      />
-
-                      <div>
-                        {unit.pxToUnitRounded({
-                          px: store.width * pageSizeModifier,
-                          dpi: store.dpi,
-                          precious: 0,
-                          unit: 'mm',
-                        })}{' '}
-                        x{' '}
-                        {unit.pxToUnitRounded({
-                          px: store.height * pageSizeModifier,
-                          dpi: store.dpi,
-                          precious: 0,
-                          unit: 'mm',
-                        })}{' '}
-                        mm
-                      </div>
+                  <div className="page-size-controls">
+                    <label className="form-label">Page Size</label>
+                    <Slider
+                      value={pageSizeModifier}
+                      labelRenderer={false}
+                      onChange={(pageSizeModifier) => {
+                        setPageSizeModifier(pageSizeModifier);
+                      }}
+                      stepSize={0.2}
+                      min={0.2}
+                      max={3}
+                      showTrackFill={false}
+                    />
+                    <div className="size-info">
+                      {unit.pxToUnitRounded({
+                        px: store.width * pageSizeModifier,
+                        dpi: store.dpi,
+                        precious: 0,
+                        unit: 'mm',
+                      })}{' '}
+                      x{' '}
+                      {unit.pxToUnitRounded({
+                        px: store.height * pageSizeModifier,
+                        dpi: store.dpi,
+                        precious: 0,
+                        unit: 'mm',
+                      })}{' '}
+                      mm
                     </div>
-                  </>
+                  </div>
                 )}
-              </>
-            )}
-          {type === 'json' && (
-            <>
-              <div style={{ padding: '10px', maxWidth: '180px', opacity: 0.8 }}>
-                JSON format is used for saving and loading projects. You can
-                save your project to a file and load it later via "File" {'->'}{' '}
-                "Open" menu.
               </div>
-            </>
+            )}
+
+          {type === 'json' && (
+            <div className="info-section">
+              <div className="info-text">
+                JSON format is used for saving and loading projects. You can
+                save your project to a file and load it later via "File" → "Open" menu.
+              </div>
+            </div>
           )}
+
           {type === 'psd' && (
-            <>
-              <div style={{ padding: '10px', maxWidth: '180px', opacity: 0.8 }}>
+            <div className="info-section">
+              <div className="info-text">
                 PSD format creates Adobe Photoshop compatible files with layers preserved. 
                 {store.pages.length > 1 ? ' Multiple pages will be exported as a ZIP archive containing separate PSD files.' : ''}
               </div>
-            </>
+            </div>
           )}
+
           {type === 'pdf' && (
-            <div style={{ padding: '10px' }}>
+            <div className="checkbox-section">
               <Checkbox
                 checked={vectorPDF}
-                label="Vector (Beta)"
+                label="Vector PDF (Beta)"
                 onChange={(e) => setVectorPDF(e.target.checked)}
               />
             </div>
           )}
+
           {(type === 'mp4' ||
             type === 'pptx' ||
             (type === 'pdf' && vectorPDF)) && (
-            <>
-              <div style={{ padding: '10px', maxWidth: '180px', opacity: 0.8 }}>
+            <div className="info-section">
+              <div className="info-text">
                 <strong>Beta feature.</strong>{' '}
                 <a href="mailto:anton@polotno.com">
                   Let us know what you think!
                 </a>
               </div>
               {saving && (
-                <div
-                  style={{ padding: '10px', maxWidth: '180px', opacity: 0.8 }}
-                >
+                <div className="progress-section">
                   <ProgressBar value={Math.max(3, progress) / 100} />
                 </div>
               )}
-            </>
+            </div>
           )}
-          <Button fill intent="primary" loading={saving} onClick={handleExport}>
+        </div>
+
+        <div className="download-modal-footer">
+          <Button
+            large
+            intent="primary"
+            loading={saving}
+            onClick={handleExport}
+            className="download-btn"
+          >
             Download {type.toUpperCase()}
           </Button>
-        </Menu>
-      }
-      position={Position.BOTTOM_RIGHT}
-    >
-      <Button
-        endIcon="chevron-down"
-        text={t('toolbar.download')}
-        intent="primary"
-        onClick={() => {
-          setQuality(1);
-        }}
-      />
-    </Popover>
+        </div>
+      </div>
+    </div>
   );
 });

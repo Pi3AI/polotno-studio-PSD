@@ -27,9 +27,28 @@ This is a React-based design editor built on the Polotno SDK with advanced PSD i
 - `index.html` - HTML entry with Vite injection points
 
 #### Custom UI Components
-- `src/components/ImprovedApp.jsx` - Alternative modern UI layout with AI assistant panel
+The project includes multiple editor variations and specialized components:
+
+**Editor Variants** (alternative app layouts):
+- `src/components/UltraModernEditor.jsx` - Ultra-modern UI with floating toolbar and enhanced sidebar
+- `src/components/BeautifulEditor.jsx` - Polished editor with refined aesthetics
+- `src/components/EnhancedEditor.jsx` - Enhanced version with additional features
+- `src/components/SafeEnhancedEditor.jsx` - Stable enhanced editor variant
+- `src/components/PerfectEditor.jsx` - Performance-optimized editor layout
+- `src/components/ImprovedApp.jsx` - Modern UI layout with AI assistant panel
+- `src/components/LovartApp.jsx` - Specialized variant for art-focused workflows
+
+**Specialized Components**:
 - `src/components/AIAssistantPanel.jsx` - AI-powered design assistance interface
+- `src/components/ImageSearchPanel.jsx` - Image search and discovery panel
+- `src/components/SmartFloatingToolbar.jsx` - Context-aware floating toolbar with MobX integration
+- `src/components/SimpleSidebar.jsx` - Streamlined sidebar with core Polotno tools
+- `src/components/UltraSidebar.jsx` - Advanced sidebar with extended functionality
+- `src/components/LeftToolbar.jsx` - Left-positioned toolbar for alternative layouts
 - `src/components/BottomToolbar.jsx` - Bottom toolbar for page management
+- `src/components/TextPanel.jsx` - Dedicated text editing and formatting panel
+- `src/components/UltraStyledPanel.jsx` - Highly styled panel component
+- `src/components/PreciseTextRenderer.jsx` - High-precision text rendering component
 
 #### Custom Sections (extending Polotno defaults)
 All sections in `src/sections/`:
@@ -38,7 +57,10 @@ All sections in `src/sections/`:
 - `stable-diffusion-section.jsx` - AI image generation via Stable Diffusion
 - `layers-section.jsx` - Advanced layer management interface
 - `shapes-section.jsx` - Custom shapes (replaces default elements section)
-- Additional: QR codes, quotes, icons, videos
+- `qr-section.jsx` - QR code generation and customization
+- `quotes-section.jsx` - Text quotes templates and styling
+- `icons-section.jsx` - Icon library and management
+- `video-section.jsx` - Video elements support and integration
 
 #### PSD Processing Pipeline
 Critical for maintaining pixel-perfect accuracy:
@@ -63,6 +85,8 @@ All in `src/topbar/`:
 - `psd-export-button.jsx` - Specialized PSD export
 - `user-menu.jsx` - User account and settings
 - `debug-button.jsx` - Development tools (only in dev mode)
+- `postprocess.jsx` - Post-processing effects system
+- `post-process-button.jsx` - Post-process UI controls
 
 ### Key Technical Considerations
 
@@ -100,10 +124,12 @@ When running locally:
 ### Git Workflow
 
 Current branch structure:
-- `master` - Main development branch
+- `master` - Main development branch (currently ahead of origin by 3 commits)
 - Remote: `origin` points to GitHub repository
 
-The project uses stash for temporary changes storage. Check `git stash list` for saved work.
+**Current Status**: Branch has uncommitted changes to `src/components/UltraModernEditor.jsx`. The project uses stash for temporary changes storage. Check `git stash list` for saved work.
+
+**Recent Development**: Focus on floating toolbar enhancements and sidebar integrations with MobX event handling improvements.
 
 ### Environment Notes
 

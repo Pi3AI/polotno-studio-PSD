@@ -58,7 +58,7 @@
   --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   
   /* 布局 */
-  --header-height: 48px; /* 缩小顶部高度 */
+  --header-height: 56px; /* 增强头部高度 */
   --sidebar-width: 64px;
   --panel-width: 340px;
   --radius-sm: 8px;
@@ -105,22 +105,27 @@ body::before {
   66% { transform: translate(20px, -10px) scale(0.95); }
 }
 
-/* ==================== 简化顶部栏 ==================== */
+/* ==================== 优化的顶部导航栏 ==================== */
 
-.ultra-header-minimal {
+.ultra-header-enhanced {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 48px; /* 更小的高度 */
+  height: 56px; /* 增加高度以容纳更多内容 */
   background: var(--bg-glass);
-  backdrop-filter: blur(var(--blur-lg));
+  backdrop-filter: blur(var(--blur-xl));
   border-bottom: 1px solid var(--border-glass);
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   padding: 0 24px;
   z-index: 1000;
+  box-shadow: var(--shadow-sm);
+}
+
+.ultra-header-minimal {
+  display: none; /* 隐藏旧的头部 */
 }
 
 .ultra-header {
@@ -146,15 +151,177 @@ body::before {
   50% { opacity: 1; }
 }
 
+/* 头部左侧区域 */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  justify-self: start;
+}
+
 .header-brand {
   display: flex;
   align-items: center;
   gap: 12px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.header-brand:hover {
+  transform: scale(1.02);
+}
+
+.brand-text {
   font-size: 18px;
   font-weight: 700;
   background: var(--gradient-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--border-glass);
+}
+
+.header-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  position: relative;
+}
+
+.nav-item:hover {
+  background: var(--bg-glass);
+  color: var(--text-secondary);
+}
+
+.nav-item.active {
+  background: var(--bg-glass-heavy);
+  color: var(--text-primary);
+}
+
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 16px;
+  right: 16px;
+  height: 2px;
+  background: var(--gradient-primary);
+  border-radius: 1px;
+}
+
+/* 头部中央区域 */
+.header-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+}
+
+.project-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.project-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.project-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--color-success);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+/* 头部右侧区域 */
+.header-right {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+}
+
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  backdrop-filter: blur(var(--blur-md));
+}
+
+.action-btn:hover {
+  background: var(--bg-glass-heavy);
+  border-color: var(--border-glow);
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-1px);
+}
+
+.action-btn.secondary {
+  background: transparent;
+  border-color: var(--border-light);
+}
+
+.action-btn.avatar {
+  padding: 8px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  border: none;
+  color: white;
+  min-width: 40px;
+  height: 40px;
+  justify-content: center;
+}
+
+.user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .header-brand-icon {
@@ -250,6 +417,175 @@ body::before {
 .btn-gradient:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+}
+
+/* 增强版下载按钮样式 */
+.download-button-enhanced {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 120px;
+}
+
+.download-button-enhanced .bp5-popover2-target {
+  position: relative;
+}
+
+.download-button-enhanced .bp5-button,
+.download-button-enhanced .download-trigger-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #2d3748;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-height: 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.download-button-enhanced .bp5-button::before,
+.download-button-enhanced .download-trigger-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.2), 
+    transparent);
+  transition: left 0.5s;
+}
+
+.download-button-enhanced .bp5-button:hover,
+.download-button-enhanced .download-trigger-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  border-color: #cbd5e0;
+  background: #f7fafc;
+}
+
+.download-button-enhanced .bp5-button:hover::before,
+.download-button-enhanced .download-trigger-btn:hover::before {
+  left: 100%;
+}
+
+.download-button-enhanced .bp5-button:focus,
+.download-button-enhanced .download-trigger-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #667eea;
+}
+
+.download-button-enhanced .bp5-button:active,
+.download-button-enhanced .download-trigger-btn:active {
+  transform: translateY(0);
+}
+
+/* 保持旧版本兼容性 */
+.download-wrapper {
+  position: relative;
+}
+
+.download-wrapper .bp5-popover2-target {
+  position: relative;
+}
+
+.download-wrapper .bp5-button {
+  padding: 8px 20px;
+  background: var(--gradient-primary);
+  border: none;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  box-shadow: var(--shadow-color);
+}
+
+.download-wrapper .bp5-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+}
+
+.download-wrapper .bp5-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.5);
+}
+
+/* 下载菜单样式 */
+.download-wrapper .bp5-popover2-content {
+  background: var(--bg-glass-heavy);
+  backdrop-filter: blur(var(--blur-xl));
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  padding: 0;
+  overflow: hidden;
+}
+
+.download-wrapper .bp5-menu {
+  background: transparent;
+  padding: 16px;
+  color: var(--text-primary);
+}
+
+.download-wrapper .bp5-menu p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.download-wrapper .bp5-html-select select {
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.download-wrapper .bp5-html-select select:focus {
+  outline: none;
+  border-color: var(--border-glow);
+  box-shadow: 0 0 0 1px rgba(102, 126, 234, 0.3);
+}
+
+.download-wrapper .bp5-slider {
+  margin: 8px 0;
+}
+
+.download-wrapper .bp5-slider-track {
+  background: var(--border-glass);
+}
+
+.download-wrapper .bp5-slider-progress {
+  background: var(--gradient-primary);
+}
+
+.download-wrapper .bp5-slider-handle {
+  background: var(--color-primary);
+  border: 2px solid white;
+  box-shadow: var(--shadow-md);
+}
+
+.download-wrapper .bp5-button.bp5-intent-primary {
+  background: var(--gradient-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  margin-top: 16px;
 }
 
 /* ==================== 集成的左侧导航栏 ==================== */
@@ -768,12 +1104,59 @@ body::before {
   :root {
     --panel-width: 300px;
   }
+  
+  .header-center {
+    display: none; /* 隐藏项目信息 */
+  }
+  
+  .ultra-header-enhanced {
+    grid-template-columns: 1fr auto;
+  }
 }
 
 @media (max-width: 1200px) {
   :root {
     --panel-width: 260px;
     --sidebar-width: 56px;
+  }
+  
+  .header-nav {
+    display: none; /* 隐藏导航项 */
+  }
+  
+  .header-divider {
+    display: none;
+  }
+  
+  .action-group {
+    gap: 8px;
+  }
+  
+  .action-btn span {
+    display: none; /* 隐藏按钮文字，只保留图标 */
+  }
+  
+  .action-btn {
+    padding: 10px;
+    min-width: 40px;
+  }
+}
+
+@media (max-width: 900px) {
+  .header-left {
+    gap: 16px;
+  }
+  
+  .action-btn.secondary {
+    display: none; /* 隐藏分享按钮 */
+  }
+  
+  .brand-text {
+    display: none; /* 隐藏品牌文字 */
+  }
+  
+  .ultra-header-enhanced {
+    padding: 0 16px;
   }
 }
 
@@ -804,4 +1187,78 @@ body::before {
     right: 16px;
     bottom: calc(40% + var(--sidebar-width) + 16px);
   }
+}
+
+/* 确保文本编辑器有足够高的z-index，避免被浮动工具栏遮挡 */
+.konvajs-content textarea,
+.polotno-text-editor,
+.polotno-text-editing,
+.konvajs-content input[type="text"],
+.polotno-text-element textarea,
+.polotno-text-element input,
+.polotno-editing-element textarea,
+.polotno-editing-element input {
+  z-index: 2000 !important;
+  position: relative !important;
+}
+
+/* 确保文本编辑状态下的元素能够正常接收点击事件 */
+.konvajs-content.polotno-editing,
+.polotno-workspace.polotno-editing {
+  z-index: 1500 !important;
+}
+
+/* 提高Blueprint.js输入框的z-index，确保在编辑面板中正常工作 */
+.bp5-editable-text,
+.bp5-editable-text input,
+.bp5-input,
+.bp5-text-area {
+  z-index: auto !important;
+}
+
+/* 确保侧边栏和面板的z-index不会太高，避免遮挡文本编辑器 */
+.ultra-sidebar-enhanced,
+.ultra-sidebar {
+  z-index: 100 !important;
+}
+
+/* 确保Polotno画布区域可以正常接收双击事件 */
+.canvas-viewport,
+.polotno-app-container,
+.konvajs-content,
+canvas {
+  pointer-events: auto !important;
+}
+
+/* 确保文本编辑功能完全可用 */
+.konvajs-content {
+  position: relative !important;
+}
+
+/* 移除任何可能阻止文本编辑的样式 */
+.canvas-viewport * {
+  pointer-events: auto !important;
+}
+
+/* 确保文本编辑器textarea可见且可交互 */
+.konvajs-content textarea {
+  pointer-events: auto !important;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  z-index: 10000 !important;
+  background: white !important;
+  border: 2px solid #667eea !important;
+  border-radius: 4px !important;
+  resize: none !important;
+}
+
+/* 确保输入框可见 */
+.konvajs-content input[type="text"] {
+  pointer-events: auto !important;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  z-index: 10000 !important;
+  background: white !important;
+  border: 2px solid #667eea !important;
+  border-radius: 4px !important;
 }
