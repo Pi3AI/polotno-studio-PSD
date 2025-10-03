@@ -8,11 +8,394 @@ import { TYPES, figureToSvg } from 'polotno/utils/figure-to-svg';
 import ImageSearchPanel from './ImageSearchPanel';
 import EnhancedTextPanel from './TextPanel';
 
+// My Design Panel 组件 - 显示所有页面预览
+const MyDesignPanel = ({ store, onClose }) => {
+  const [selectedPageId, setSelectedPageId] = useState(null);
+  
+  if (!store || !store.pages) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center', color: 'var(--gray-600)' }}>
+        <p>暂无页面数据</p>
+      </div>
+    );
+  }
+  
+  const handlePageClick = (page) => {
+    if (store.setActivePage) {
+      store.setActivePage(page.id);
+      setSelectedPageId(page.id);
+      console.log('切换到页面:', page.id);
+    }
+  };
+  
+  const handleAddPage = () => {
+    if (store.addPage) {
+      const newPage = store.addPage();
+      console.log('添加新页面:', newPage.id);
+    }
+  };
+  
+  const handleDeletePage = (pageId) => {
+    if (store.pages.length > 1 && store.removePage) {
+      store.removePage(pageId);
+      console.log('删除页面:', pageId);
+    } else {
+      alert('至少保留一个页面');
+    }
+  };
+  
+  const generatePagePreview = async (page) => {
+    try {
+      if (page.toDataURL) {
+        return await page.toDataURL({ width: 200, height: 150 });
+      }
+      return null;
+    } catch (error) {
+      console.error('生成页面预览失败:', error);
+      return null;
+    }
+  };
+  
+  return (
+    <div style={{ color: 'var(--gray-900)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <h4 style={{ margin: '0', fontSize: '14px', fontWeight: '600' }}>
+          我的设计 ({store.pages.length} 页)
+        </h4>
+        <button
+          onClick={handleAddPage}
+          style={{
+            padding: '6px 12px',
+            background: 'var(--sidebar-primary)',
+            border: 'none',
+            borderRadius: '6px',
+            color: 'white',
+            fontSize: '12px',
+            cursor: 'pointer'
+          }}
+        >
+          + 新增页面
+        </button>
+      </div>
+      
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(2, 1fr)', 
+        gap: '12px',
+        maxHeight: '400px',
+        overflowY: 'auto'
+      }}>
+        {store.pages.map((page, index) => {
+          const isActive = store.activePage?.id === page.id;
+          const isSelected = selectedPageId === page.id;
+          
+          return (
+            <div
+              key={page.id}
+              style={{
+                position: 'relative',
+                border: `2px solid ${isActive ? 'var(--sidebar-primary)' : 'var(--gray-200)'}`,
+                borderRadius: '8px',
+                padding: '8px',
+                cursor: 'pointer',
+                background: isActive ? 'rgba(99, 102, 241, 0.05)' : 'var(--gray-50)',
+                transition: 'all 0.2s ease'
+              }}
+              onClick={() => handlePageClick(page)}
+              onMouseOver={(e) => {
+                if (!isActive) {
+                  e.target.style.borderColor = 'var(--sidebar-primary)';
+                  e.target.style.background = 'rgba(99, 102, 241, 0.02)';
+                }
+              }}
+              onMouseOut={(e) => {
+                if (!isActive) {
+                  e.target.style.borderColor = 'var(--gray-200)';
+                  e.target.style.background = 'var(--gray-50)';
+                }
+              }}
+            >
+              {/* 页面预览区域 */}
+              <div style={{
+                width: '100%',
+                height: '100px',
+                background: 'white',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '8px',
+                border: '1px solid var(--gray-200)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                {/* 简化的页面内容预览 */}
+                <div style={{
+                  width: '80%',
+                  height: '80%',
+                  background: `linear-gradient(45deg, 
+                    ${page.children?.length ? '#e3f2fd' : '#f5f5f5'} 25%, 
+                    transparent 25%, 
+                    transparent 75%, 
+                    ${page.children?.length ? '#e3f2fd' : '#f5f5f5'} 75%), 
+                    linear-gradient(45deg, 
+                    ${page.children?.length ? '#e3f2fd' : '#f5f5f5'} 25%, 
+                    transparent 25%, 
+                    transparent 75%, 
+                    ${page.children?.length ? '#e3f2fd' : '#f5f5f5'} 75%)`,
+                  backgroundSize: '8px 8px',
+                  backgroundPosition: '0 0, 4px 4px',
+                  borderRadius: '2px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '10px',
+                  color: 'var(--gray-600)'
+                }}>
+                  {page.children?.length ? 
+                    `${page.children.length} 元素` : 
+                    '空白页面'
+                  }
+                </div>
+                
+                {/* 活跃页面标识 */}
+                {isActive && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '4px',
+                    right: '4px',
+                    width: '8px',
+                    height: '8px',
+                    background: 'var(--sidebar-primary)',
+                    borderRadius: '50%'
+                  }} />
+                )}
+              </div>
+              
+              {/* 页面信息 */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: '500', color: 'var(--gray-900)' }}>
+                    页面 {index + 1}
+                  </div>
+                  <div style={{ fontSize: '10px', color: 'var(--gray-600)' }}>
+                    {page.width}×{page.height}
+                  </div>
+                </div>
+                
+                {/* 删除按钮 */}
+                {store.pages.length > 1 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeletePage(page.id);
+                    }}
+                    style={{
+                      padding: '2px 4px',
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'var(--gray-400)',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      borderRadius: '2px'
+                    }}
+                    onMouseOver={(e) => {
+                      e.target.style.background = 'rgba(239, 68, 68, 0.1)';
+                      e.target.style.color = '#ef4444';
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.background = 'transparent';
+                      e.target.style.color = 'var(--gray-400)';
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      
+      <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--gray-200)' }}>
+        <div style={{ fontSize: '12px', color: 'var(--gray-600)', textAlign: 'center' }}>
+          点击页面切换 | 当前页面: {store.activePage ? store.pages.findIndex(p => p.id === store.activePage.id) + 1 : 1}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Resize Canvas Panel 组件
+const ResizeCanvasPanel = ({ store, onResize, onClose }) => {
+  const [width, setWidth] = useState(store?.activePage?.width || 800);
+  const [height, setHeight] = useState(store?.activePage?.height || 600);
+  const [aspectRatio, setAspectRatio] = useState(true);
+  
+  const originalRatio = (store?.activePage?.width || 800) / (store?.activePage?.height || 600);
+  
+  const handleWidthChange = (newWidth) => {
+    setWidth(newWidth);
+    if (aspectRatio) {
+      setHeight(Math.round(newWidth / originalRatio));
+    }
+  };
+  
+  const handleHeightChange = (newHeight) => {
+    setHeight(newHeight);
+    if (aspectRatio) {
+      setWidth(Math.round(newHeight * originalRatio));
+    }
+  };
+  
+  const presets = [
+    { name: 'A4 横向', width: 842, height: 595 },
+    { name: 'A4 纵向', width: 595, height: 842 },
+    { name: '1920x1080', width: 1920, height: 1080 },
+    { name: '1280x720', width: 1280, height: 720 },
+    { name: 'Instagram 正方形', width: 1080, height: 1080 },
+    { name: 'Instagram 故事', width: 1080, height: 1920 },
+    { name: 'Facebook 封面', width: 1200, height: 630 },
+    { name: 'Twitter 头图', width: 1500, height: 500 }
+  ];
+  
+  return (
+    <div style={{ color: 'var(--gray-900)' }}>
+      <div style={{ marginBottom: '16px' }}>
+        <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '600' }}>当前尺寸</h4>
+        <p style={{ margin: '0', fontSize: '13px', color: 'var(--gray-600)' }}>
+          {store?.activePage?.width || 800} × {store?.activePage?.height || 600} 像素
+        </p>
+      </div>
+      
+      <div style={{ marginBottom: '16px' }}>
+        <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '600' }}>自定义尺寸</h4>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+          <input
+            type="number"
+            placeholder="宽度"
+            value={width}
+            onChange={(e) => handleWidthChange(parseInt(e.target.value) || 0)}
+            style={{
+              flex: 1,
+              padding: '8px 12px',
+              border: '1px solid var(--gray-200)',
+              borderRadius: '6px',
+              fontSize: '13px'
+            }}
+          />
+          <span style={{ color: 'var(--gray-600)' }}>×</span>
+          <input
+            type="number"
+            placeholder="高度"
+            value={height}
+            onChange={(e) => handleHeightChange(parseInt(e.target.value) || 0)}
+            style={{
+              flex: 1,
+              padding: '8px 12px',
+              border: '1px solid var(--gray-200)',
+              borderRadius: '6px',
+              fontSize: '13px'
+            }}
+          />
+        </div>
+        <label style={{ display: 'flex', alignItems: 'center', fontSize: '12px', color: 'var(--gray-600)' }}>
+          <input
+            type="checkbox"
+            checked={aspectRatio}
+            onChange={(e) => setAspectRatio(e.target.checked)}
+            style={{ marginRight: '6px' }}
+          />
+          保持宽高比
+        </label>
+      </div>
+      
+      <div style={{ marginBottom: '20px' }}>
+        <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '600' }}>预设尺寸</h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
+          {presets.map((preset) => (
+            <button
+              key={preset.name}
+              onClick={() => {
+                setWidth(preset.width);
+                setHeight(preset.height);
+              }}
+              style={{
+                padding: '8px 10px',
+                background: 'var(--gray-100)',
+                border: '1px solid var(--gray-200)',
+                borderRadius: '6px',
+                fontSize: '11px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.background = 'var(--gray-50)';
+                e.target.style.borderColor = 'var(--sidebar-primary)';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.background = 'var(--gray-100)';
+                e.target.style.borderColor = 'var(--gray-200)';
+              }}
+            >
+              {preset.name}
+              <br />
+              <span style={{ color: 'var(--gray-600)' }}>
+                {preset.width}×{preset.height}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+      
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button
+          onClick={() => {
+            onResize(width, height);
+            onClose();
+          }}
+          style={{
+            flex: 1,
+            padding: '10px 16px',
+            background: 'var(--sidebar-primary)',
+            border: 'none',
+            borderRadius: '6px',
+            color: 'white',
+            fontSize: '13px',
+            fontWeight: '500',
+            cursor: 'pointer'
+          }}
+        >
+          应用更改
+        </button>
+        <button
+          onClick={onClose}
+          style={{
+            flex: 1,
+            padding: '10px 16px',
+            background: 'var(--gray-100)',
+            border: '1px solid var(--gray-200)',
+            borderRadius: '6px',
+            color: 'var(--gray-700)',
+            fontSize: '13px',
+            fontWeight: '500',
+            cursor: 'pointer'
+          }}
+        >
+          取消
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const SimpleSidebar = ({ store }) => {
   const [activeTool, setActiveTool] = useState('select');
   const [showShapeMenu, setShowShapeMenu] = useState(false);
   const [showImageSearch, setShowImageSearch] = useState(false);
   const [showTextPanel, setShowTextPanel] = useState(false);
+  const [showResizePanel, setShowResizePanel] = useState(false);
+  const [showMyDesign, setShowMyDesign] = useState(false);
   
   // 键盘快捷键支持
   useEffect(() => {
@@ -42,6 +425,14 @@ const SimpleSidebar = ({ store }) => {
         case 'u':
           e.preventDefault();
           handleToolClick('upload');
+          break;
+        case 'm':
+          e.preventDefault();
+          handleToolClick('my-design');
+          break;
+        case 'r':
+          e.preventDefault();
+          handleToolClick('resize');
           break;
       }
     };
@@ -177,6 +568,8 @@ const SimpleSidebar = ({ store }) => {
         if (store.setDrawingEnabled) {
           store.setDrawingEnabled(false);
         }
+        
+        // 清理绘图状态（如果有的话）
         break;
         
       case 'text':
@@ -199,9 +592,32 @@ const SimpleSidebar = ({ store }) => {
         handleFileUpload();
         break;
         
+      case 'my-design':
+        // My Design工具 - 显示页面预览
+        setShowMyDesign(!showMyDesign);
+        break;
+        
+      case 'resize':
+        // 显示画布调整面板
+        setShowResizePanel(!showResizePanel);
+        break;
+        
       default:
         break;
     }
+  };
+  
+  
+  // 画布调整功能
+  const handleCanvasResize = (newWidth, newHeight) => {
+    if (!store || !store.activePage) return;
+    
+    store.activePage.set({
+      width: parseInt(newWidth),
+      height: parseInt(newHeight)
+    });
+    
+    console.log(`画布调整为: ${newWidth}x${newHeight}`);
   };
   
   // 处理图片上传
@@ -550,6 +966,20 @@ const SimpleSidebar = ({ store }) => {
   // 工具配置
   const tools = [
     {
+      id: 'my-design',
+      name: 'My Design',
+      description: 'View all pages preview',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <rect x="3" y="3" width="7" height="9" strokeLinecap="round" strokeLinejoin="round"/>
+          <rect x="13" y="3" width="7" height="5" strokeLinecap="round" strokeLinejoin="round"/>
+          <rect x="13" y="12" width="7" height="9" strokeLinecap="round" strokeLinejoin="round"/>
+          <rect x="3" y="16" width="7" height="5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+      shortcut: 'M'
+    },
+    {
       id: 'select',
       name: 'Select',
       description: 'Select and move elements',
@@ -607,6 +1037,20 @@ const SimpleSidebar = ({ store }) => {
         </svg>
       ),
       shortcut: 'U'
+    },
+    {
+      id: 'resize',
+      name: 'Resize',
+      description: 'Resize canvas dimensions',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M16 3h5v5"/>
+          <line x1="21" y1="3" x2="14" y2="10"/>
+          <path d="M8 21H3v-5"/>
+          <line x1="3" y1="21" x2="10" y2="14"/>
+        </svg>
+      ),
+      shortcut: 'R'
     }
   ];
   
@@ -619,7 +1063,9 @@ const SimpleSidebar = ({ store }) => {
             className={`simple-tool-btn ${activeTool === tool.id ? 'active' : ''} ${
               (tool.id === 'shapes' && showShapeMenu) || 
               (tool.id === 'images' && showImageSearch) ||
-              (tool.id === 'text' && showTextPanel) ? 'menu-open' : ''
+              (tool.id === 'text' && showTextPanel) ||
+              (tool.id === 'resize' && showResizePanel) ||
+              (tool.id === 'my-design' && showMyDesign) ? 'menu-open' : ''
             }`}
             onClick={() => handleToolClick(tool.id)}
             aria-label={`${tool.name} tool`}
@@ -697,14 +1143,61 @@ const SimpleSidebar = ({ store }) => {
         />
       )}
 
+      {/* My Design 面板 */}
+      {showMyDesign && (
+        <div className="shape-menu">
+          <div className="shape-menu-header">
+            <h3>我的设计</h3>
+            <button 
+              className="shape-menu-close"
+              onClick={() => setShowMyDesign(false)}
+            >
+              ✕
+            </button>
+          </div>
+          
+          <div style={{ padding: '20px' }}>
+            <MyDesignPanel 
+              store={store}
+              onClose={() => setShowMyDesign(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Resize 面板 */}
+      {showResizePanel && (
+        <div className="shape-menu">
+          <div className="shape-menu-header">
+            <h3>调整画布尺寸</h3>
+            <button 
+              className="shape-menu-close"
+              onClick={() => setShowResizePanel(false)}
+            >
+              ✕
+            </button>
+          </div>
+          
+          <div style={{ padding: '20px' }}>
+            <ResizeCanvasPanel 
+              store={store}
+              onResize={handleCanvasResize}
+              onClose={() => setShowResizePanel(false)}
+            />
+          </div>
+        </div>
+      )}
+
       {/* 背景遮罩 */}
-      {(showShapeMenu || showImageSearch || showTextPanel) && (
+      {(showShapeMenu || showImageSearch || showTextPanel || showResizePanel || showMyDesign) && (
         <div 
           className="shape-menu-overlay"
           onClick={() => {
             setShowShapeMenu(false);
             setShowImageSearch(false);
             setShowTextPanel(false);
+            setShowResizePanel(false);
+            setShowMyDesign(false);
           }}
         />
       )}
