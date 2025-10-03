@@ -10,8 +10,8 @@ import { PagesTimeline } from 'polotno/pages-timeline';
 import SimpleSidebar from './SimpleSidebar';
 // 导入PSD导出功能
 import { exportToPSD, exportAllPagesToPSDZip } from '../psd-export';
-// 导入下拉式下载组件
-import { DownloadDropdown } from './DownloadDropdown';
+// 导入增强版下载组件
+import { EnhancedDownloadButton } from './EnhancedDownloadButton';
 
 // 导入样式
 import '../styles/ultra-modern.css';
@@ -305,7 +305,7 @@ const UltraModernEditor = observer(({ store }) => {
             </button>
             
             <div className="download-button-enhanced">
-              <DownloadDropdown store={store} />
+              <EnhancedDownloadButton store={store} />
             </div>
             
             <button className="action-btn avatar">
