@@ -2,7 +2,7 @@
 
 .enhanced-text-panel {
   position: fixed;
-  right: 20px;
+  left: 100px;
   top: 50%;
   transform: translateY(-50%);
   width: 400px;
@@ -17,7 +17,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  animation: slideInRight 0.3s ease-out;
+  animation: slideInLeft 0.3s ease-out;
 }
 
 /* 头部 */
@@ -270,7 +270,7 @@
 /* 响应式设计 */
 @media (max-width: 1024px) {
   .enhanced-text-panel {
-    right: 16px;
+    left: 80px;
     width: 360px;
   }
   
@@ -295,9 +295,9 @@
 
 @media (max-width: 768px) {
   .enhanced-text-panel {
-    right: 50%;
+    left: 50%;
     top: 50%;
-    transform: translate(50%, -50%);
+    transform: translate(-50%, -50%);
     width: calc(100vw - 32px);
     max-width: 360px;
     max-height: 85vh;
@@ -328,10 +328,10 @@
 }
 
 /* 动画 */
-@keyframes slideInRight {
+@keyframes slideInLeft {
   from {
     opacity: 0;
-    transform: translateX(20px) translateY(-50%);
+    transform: translateX(-20px) translateY(-50%);
   }
   to {
     opacity: 1;
