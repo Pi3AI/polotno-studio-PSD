@@ -6,16 +6,34 @@ import { ZoomButtons } from 'polotno/toolbar/zoom-buttons';
 import { Workspace } from 'polotno/canvas/workspace';
 import { PagesTimeline } from 'polotno/pages-timeline';
 
-// 导入智能浮动工具栏
-import SmartFloatingToolbar from './SmartFloatingToolbar';
 // 导入简化版侧边栏
 import SimpleSidebar from './SimpleSidebar';
+// 导入PSD导出功能
+import { exportToPSD, exportAllPagesToPSDZip } from '../psd-export';
+// 导入下拉式下载组件
+import { DownloadDropdown } from './DownloadDropdown';
 
 // 导入样式
 import '../styles/ultra-modern.css';
-import '../styles/smart-floating-toolbar.css';
+import '../styles/download-dropdown.css';
 
-// 移除旧的浮动工具栏，使用新的SmartFloatingToolbar
+// 测试函数：添加简单文本元素
+const addTestText = (store) => {
+  store.activePage.addElement({
+    type: 'text',
+    x: 100,
+    y: 100,
+    width: 200,
+    height: 50,
+    text: '测试文字 - 双击编辑',
+    fontSize: 24,
+    fontFamily: 'Arial',
+    fill: '#000000'
+  });
+  console.log('已添加测试文本元素');
+};
+
+// 浮动工具栏已被移除
 /*
 const ContextToolbar = observer(({ element, store, position }) => {
   const [visible, setVisible] = useState(false);
@@ -237,25 +255,68 @@ const UltraModernEditor = observer(({ store }) => {
   
   return (
     <div className="ultra-modern-editor">
-      {/* 简化的顶部栏 - 只保留品牌和导出按钮 */}
-      <header className="ultra-header-minimal">
-        <div className="header-brand">
-          <div className="header-brand-icon">✨</div>
-          <span>Ultra Design</span>
+      {/* 优化的顶部导航栏 */}
+      <header className="ultra-header-enhanced">
+        <div className="header-left">
+          <div className="header-brand">
+            <div className="header-brand-icon">✨</div>
+            <span className="brand-text">pi3 lab</span>
+          </div>
+          
+          <div className="header-divider"></div>
+          
+          <nav className="header-nav">
+            <button className="nav-item active">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                <polyline points="10 17 15 12 10 7"/>
+                <line x1="15" y1="12" x2="3" y2="12"/>
+              </svg>
+              Design
+            </button>
+            <button className="nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+              </svg>
+              Tools
+            </button>
+          </nav>
         </div>
         
-        <div className="header-actions">
-          <button className="btn-glass">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-              <polyline points="16 6 12 2 8 6"/>
-              <line x1="12" y1="2" x2="12" y2="15"/>
-            </svg>
-            Share
-          </button>
-          <button className="btn-gradient" onClick={handleExport}>
-            Export
-          </button>
+        <div className="header-center">
+          <div className="project-info">
+            <span className="project-name">Untitled Design</span>
+            <div className="project-status">
+              <div className="status-dot"></div>
+              <span>Saved</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="header-right">
+          <div className="action-group">
+            <button className="action-btn secondary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                <polyline points="16 6 12 2 8 6"/>
+                <line x1="12" y1="2" x2="12" y2="15"/>
+              </svg>
+              <span>Share</span>
+            </button>
+            
+            <div className="download-button-enhanced">
+              <DownloadDropdown store={store} />
+            </div>
+            
+            <button className="action-btn avatar">
+              <div className="user-avatar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </div>
+            </button>
+          </div>
         </div>
       </header>
       
@@ -268,7 +329,15 @@ const UltraModernEditor = observer(({ store }) => {
           <PolotnoContainer className="polotno-app-container">
             <WorkspaceWrap>
               <Toolbar store={store} />
-              <Workspace store={store} />
+              <Workspace 
+                store={store} 
+                onDoubleClick={(e, element) => {
+                  console.log('双击事件:', element);
+                  if (element && element.type === 'text') {
+                    console.log('双击文本元素，应该进入编辑模式');
+                  }
+                }}
+              />
               <PagesTimeline store={store} />
             </WorkspaceWrap>
           </PolotnoContainer>
@@ -290,6 +359,9 @@ const UltraModernEditor = observer(({ store }) => {
                 <line x1="11" y1="8" x2="11" y2="14"/>
                 <line x1="8" y1="11" x2="14" y2="11"/>
               </svg>
+            </button>
+            <button className="canvas-control-btn" onClick={() => addTestText(store)}>
+              <span style={{fontSize: '12px'}}>测试文字</span>
             </button>
             <button className="canvas-control-btn" onClick={() => handleZoom('fit')}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -397,8 +469,6 @@ const UltraModernEditor = observer(({ store }) => {
         </div>
       </aside>
       
-      {/* 智能浮动工具栏 - 替代固定的顶部工具栏 */}
-      <SmartFloatingToolbar store={store} />
     </div>
   );
 });

@@ -10,9 +10,6 @@ import { PagesTimeline } from 'polotno/pages-timeline';
 // 导入美化样式
 import '../styles/beauty-system.css';
 
-// 导入智能浮动工具栏
-import SmartFloatingToolbar from './SmartFloatingToolbar';
-import '../styles/smart-floating-toolbar.css';
 
 // 导入超级侧边栏
 import UltraSidebar from './UltraSidebar';
@@ -589,8 +586,7 @@ const BeautifulEditor = observer(({ store }) => {
         </div>
       </div>
       
-      {/* 使用新的智能浮动工具栏 */}
-      <SmartFloatingToolbar store={store} />
+      {/* 浮动工具栏已被移除 */}
     </div>
   );
 });
